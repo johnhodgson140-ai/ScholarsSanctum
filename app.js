@@ -6411,12 +6411,37 @@ function runAICardGen() {
 }
 
 // Shared helper — reads file input and returns { type:'text', content } or { type:'image', b64, mime }
+// Max image dimension sent to AI — keeps file size under ~500KB
+const _AI_IMG_MAX = 1568;
+const _AI_IMG_QUALITY = 0.82;
+
 function _readAIFile(file, onReady, onError) {
   const isImage = file.type.startsWith('image/');
   const reader  = new FileReader();
   reader.onerror = () => onError('Could not read file.');
+
   if (isImage) {
-    reader.onload = e => onReady({ type: 'image', b64: e.target.result.split(',')[1], mime: file.type });
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = () => onError('Could not load image.');
+      img.onload = () => {
+        // Resize to fit within _AI_IMG_MAX on longest side
+        let w = img.width, h = img.height;
+        if (w > _AI_IMG_MAX || h > _AI_IMG_MAX) {
+          if (w >= h) { h = Math.round(h * _AI_IMG_MAX / w); w = _AI_IMG_MAX; }
+          else        { w = Math.round(w * _AI_IMG_MAX / h); h = _AI_IMG_MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', _AI_IMG_QUALITY);
+        const b64 = dataUrl.split(',')[1];
+        const kb  = Math.round(b64.length * 0.75 / 1024);
+        console.log(`Image compressed to ${w}×${h} ~${kb}KB`);
+        onReady({ type: 'image', b64, mime: 'image/jpeg' });
+      };
+      img.src = e.target.result;
+    };
     reader.readAsDataURL(file);
   } else {
     reader.onload = e => onReady({ type: 'text', content: e.target.result });
@@ -6425,25 +6450,16 @@ function _readAIFile(file, onReady, onError) {
 }
 
 function _readFileAndGenCards(file, count, status, preview) {
-  const isImage = file.type.startsWith('image/');
-  const reader  = new FileReader();
-
-  if (isImage) {
-    reader.onload = e => {
-      const b64  = e.target.result.split(',')[1];
-      const mime = file.type;
-      status.innerHTML = '<span>⏳ Reading image…</span>';
-      _genCardsFromImage(b64, mime, count, status, preview);
-    };
-    reader.readAsDataURL(file);
-  } else {
-    reader.onload = e => _genCardsFromText(e.target.result, count, status, preview);
-    reader.readAsText(file);
-  }
-
-  // Show filename
   const fp = document.getElementById('aiCardFilePreview');
   if (fp) fp.textContent = '📎 ' + file.name;
+  status.innerHTML = '<span>⏳ Reading file…</span>';
+  _readAIFile(file,
+    result => {
+      if (result.type === 'image') _genCardsFromImage(result.b64, result.mime, count, status, preview);
+      else _genCardsFromText(result.content, count, status, preview);
+    },
+    err => { status.innerHTML = `<span style="color:#ff9090">❌ ${err}</span>`; }
+  );
 }
 
 function _genCardsFromText(notes, count, status, preview) {
