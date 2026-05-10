@@ -274,26 +274,32 @@ function applyTheme() {
   applyMobileMode();
 }
 
+// Mobile mode is stored per-device in localStorage (not synced) so phone/desktop stay independent
+function _getMobileMode() {
+  try { return localStorage.getItem('sanctumMobileMode') === 'true'; } catch(e) { return false; }
+}
+function _setMobileMode(on) {
+  try { localStorage.setItem('sanctumMobileMode', on ? 'true' : 'false'); } catch(e) {}
+}
+
 function applyMobileMode() {
-  const on = db.settings.mobileMode;
-  document.body.classList.toggle('mobile-ui', !!on);
-  // Block horizontal scroll in mobile mode
+  const on = _getMobileMode();
+  document.body.classList.toggle('mobile-ui', on);
   document.documentElement.style.overflowX = on ? 'hidden' : '';
   document.body.style.overflowX = on ? 'hidden' : '';
 }
 
 function toggleMobileMode() {
-  db.settings.mobileMode = !db.settings.mobileMode;
-  saveDB();
+  const on = !_getMobileMode();
+  _setMobileMode(on);
   applyMobileMode();
   const btn = document.getElementById('mobileModeBtn');
   if (btn) _updateMobileModeBtn(btn);
-  showToast(db.settings.mobileMode ? '📱' : '🖥️',
-    db.settings.mobileMode ? 'Mobile Mode On' : 'Desktop Mode On', '');
+  showToast(on ? '📱' : '🖥️', on ? 'Mobile Mode On' : 'Desktop Mode On', '');
 }
 
 function _updateMobileModeBtn(btn) {
-  const on = db.settings.mobileMode;
+  const on = _getMobileMode();
   btn.textContent = on ? '🖥️ Switch to Desktop' : '📱 Switch to Mobile';
   btn.classList.toggle('active', on);
 }
@@ -305,7 +311,7 @@ function spawnParticles() {
   const layer = document.getElementById('particles');
   if (!layer) return;
   // Reduce to 8 particles on mobile to save battery; skip if user prefers reduced motion
-  const isMobile = db?.settings?.mobileMode;
+  const isMobile = _getMobileMode();
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const count = prefersReduced ? 0 : isMobile ? 8 : 25;
   for (let i = 0; i < count; i++) {
