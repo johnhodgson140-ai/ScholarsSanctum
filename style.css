@@ -3260,14 +3260,17 @@ body[data-card-theme="celestial"] .flashcard {
 .duel-page main,
 .duel-page > #duelPortalView,
 .duel-page > #duelSubView,
-.duel-page > #duelStudyView {
+.duel-page > #duelStudyView,
+.duel-page > #duelModeView,
+.duel-page > #duelDeckView,
+.duel-page > #aiDuelView {
   flex: 1;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(201,168,76,0.3) transparent;
-  padding: 12px 20px 20px;
   position: relative;
   z-index: 1;
+  min-height: 0;
 }
 
 /* Duel tab bar */
@@ -6446,13 +6449,18 @@ del.ai-diff-del {
   .mct-a4-page { padding: 18px 16px 20px; }
 }
 
-/* Mobile MCT: fixed full-screen overlay so parent overflow:hidden doesn't clip it */
-.mobile-ui #mctQuizView {
+/* All active study views on mobile: fixed full-screen so parent overflow:hidden never clips */
+.mobile-ui #mctQuizView,
+.mobile-ui #aiDuelView,
+.mobile-ui #duelStudyView,
+.mobile-ui #scrollWriteView {
   position: fixed !important;
   inset: 0 !important;
   z-index: 200 !important;
   height: 100% !important;
+  width: 100% !important;
   overflow-y: auto !important;
+  overflow-x: hidden !important;
   background: var(--bg-dark) !important;
   flex-direction: column !important;
 }
