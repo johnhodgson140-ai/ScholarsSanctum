@@ -5988,18 +5988,13 @@ del.ai-diff-del {
 .mobile-ui .rpg-btn.nav-btn { font-size: 0.78rem; padding: 8px 12px; min-height: 40px; }
 
 /* No horizontal scroll on study pages */
-/* Lock study + duel pages to viewport — no body scroll */
-.mobile-ui .study-page, .mobile-ui .duel-page {
-  overflow: hidden !important;
-  height: 100vh !important;
-  max-height: 100vh !important;
-  position: fixed !important;
-  width: 100% !important;
-  overscroll-behavior: none !important;
-}
-.mobile-ui .study-page .study-main,
-.mobile-ui .duel-page .study-arena {
-  overflow: hidden !important;
+/* Mobile: duel + practice pages scroll naturally like the study page — no clipping */
+body.mobile-ui.duel-page,
+body.mobile-ui.practice-page {
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow: visible !important;
+  overflow-x: hidden !important;
 }
 
 /* Map + folder pages: no body scroll, portals scroll internally */
@@ -6449,26 +6444,23 @@ del.ai-diff-del {
   .mct-a4-page { padding: 18px 16px 20px; }
 }
 
-/* All active study views on mobile: fixed full-screen so parent overflow:hidden never clips */
+/* Mobile study views: natural height, full width, scroll freely */
 .mobile-ui #mctQuizView,
 .mobile-ui #aiDuelView,
 .mobile-ui #duelStudyView,
 .mobile-ui #scrollWriteView {
-  position: fixed !important;
-  inset: 0 !important;
-  z-index: 200 !important;
-  height: 100% !important;
+  position: relative !important;
+  height: auto !important;
+  min-height: 100vh !important;
   width: 100% !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  background: var(--bg-dark) !important;
+  overflow: visible !important;
   flex-direction: column !important;
 }
-.mobile-ui #mctQuizView .write-layout { flex-direction: column !important; overflow: visible !important; }
+.mobile-ui #mctQuizView .write-layout { flex-direction: column !important; height: auto !important; }
 .mobile-ui #mctQuizView .write-right-panel { display: none !important; }
-.mobile-ui #mctQuizView .write-center { overflow: visible !important; }
-.mobile-ui #mctQuizView .word-doc-wrap { padding: 10px 8px 0; overflow: visible; flex: none; }
-.mobile-ui #mctQuizView .mct-a4-page { flex: none; overflow-y: visible; margin-bottom: 80px; }
-.mobile-ui #mctQuizView .mct-options { grid-template-columns: 1fr; }
-.mobile-ui #mctQuizView .mct-option-btn { font-size: 1rem; padding: 14px; }
+.mobile-ui #mctQuizView .write-center { height: auto !important; overflow: visible !important; }
+.mobile-ui #mctQuizView .word-doc-wrap { padding: 10px 8px 0 !important; height: auto !important; overflow: visible !important; flex: none !important; min-height: 0 !important; }
+.mobile-ui #mctQuizView .mct-a4-page { flex: none !important; height: auto !important; overflow: visible !important; margin-bottom: 60px !important; }
+.mobile-ui #mctQuizView .mct-options { grid-template-columns: 1fr !important; }
+.mobile-ui #mctQuizView .mct-option-btn { font-size: 1rem !important; padding: 14px !important; }
 .mobile-ui .duel-sub-meta { font-size: 0.7rem !important; }
