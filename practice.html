@@ -396,10 +396,11 @@
       <div class="mct-source-tabs">
         <button class="mct-src-tab active" data-src="text" onclick="setMCTSource('text')">📝 Paste Notes</button>
         <button class="mct-src-tab" data-src="deck" onclick="setMCTSource('deck')">🃏 From Deck</button>
+        <button class="mct-src-tab" data-src="file" onclick="setMCTSource('file')">📎 File / Photo</button>
       </div>
 
       <div id="mctTextSource">
-        <textarea class="rpg-input" id="mctPasteInput" rows="6"
+        <textarea class="rpg-input" id="mctPasteInput" rows="5"
           placeholder="Paste your notes, textbook extract, or bullet points here…"
           style="resize:vertical;font-family:'Crimson Text',serif"></textarea>
       </div>
@@ -408,6 +409,13 @@
         <select class="rpg-input" id="mctDeckSelect">
           <option value="">Choose a deck…</option>
         </select>
+      </div>
+
+      <div id="mctFileSource" style="display:none">
+        <p class="rpg-hint" style="margin-bottom:8px">Upload a text file or photo of your notes — AI reads it and generates questions.</p>
+        <input type="file" class="rpg-input" id="mctFileInput"
+          accept=".txt,.md,.csv,.jpg,.jpeg,.png,.webp,.gif"
+          style="padding:10px;cursor:pointer">
       </div>
 
       <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">

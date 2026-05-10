@@ -5862,12 +5862,22 @@ function showAIQGen() {
     modal.onclick = (e) => { if (e.target === modal) hideAIQGen(); };
     modal.innerHTML = `<div class="rpg-modal ai-cardgen-modal" onclick="event.stopPropagation()" style="max-width:580px">
       <div class="modal-title">✨ Generate Exam Questions</div>
-      <p class="rpg-hint" style="margin-bottom:12px">Paste 1–3 example questions. AI will generate new questions in exactly the same style, format, and topic area.</p>
-      <label class="rpg-label">Example Questions (paste here)</label>
-      <textarea class="rpg-input" id="aiQGenExamples" rows="5"
-        placeholder="e.g.\nPrepare the income statement for the year ended 31 December 2024.\n\nExplain two advantages of the straight-line method of depreciation. (4 marks)"
-        style="resize:vertical;font-family:'Crimson Text',serif;margin-bottom:10px"></textarea>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+      <div class="mct-source-tabs" id="aiQGenTabs" style="margin-bottom:12px">
+        <button class="mct-src-tab active" data-src="text" onclick="setAIQGenSource('text')">📝 Paste Examples</button>
+        <button class="mct-src-tab" data-src="file" onclick="setAIQGenSource('file')">📎 File / Photo</button>
+      </div>
+      <div id="aiQGenTextSrc">
+        <p class="rpg-hint" style="margin-bottom:8px">Paste 1–3 example questions — AI generates new ones in the same style.</p>
+        <textarea class="rpg-input" id="aiQGenExamples" rows="5"
+          placeholder="e.g.\nPrepare the income statement for the year ended 31 December 2024.\n\nExplain two advantages of the straight-line method of depreciation. (4 marks)"
+          style="resize:vertical;font-family:'Crimson Text',serif"></textarea>
+      </div>
+      <div id="aiQGenFileSrc" style="display:none">
+        <p class="rpg-hint" style="margin-bottom:8px">Upload a text file or photo of an exam paper — AI generates questions in the same style.</p>
+        <input type="file" id="aiQGenFile" accept=".txt,.md,.csv,.jpg,.jpeg,.png,.webp,.gif"
+          class="rpg-input" style="padding:10px;cursor:pointer">
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0">
         <div>
           <label class="rpg-label" style="margin:0 0 4px">Questions to generate</label>
           <input class="rpg-input small" type="number" id="aiQGenCount" value="5" min="1" max="20" style="width:70px;margin:0">
@@ -5903,39 +5913,66 @@ function hideAIQGen() {
   if (m) m.style.display = 'none';
 }
 
+function setAIQGenSource(src) {
+  document.querySelectorAll('#aiQGenTabs .mct-src-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.src === src));
+  const ts = document.getElementById('aiQGenTextSrc');
+  const fs = document.getElementById('aiQGenFileSrc');
+  if (ts) ts.style.display = src === 'text' ? '' : 'none';
+  if (fs) fs.style.display = src === 'file' ? '' : 'none';
+}
+
 let _aiGeneratedQuestions = [];
 
 function runAIQGen() {
-  const examples = (document.getElementById('aiQGenExamples')?.value || '').trim();
-  const count    = parseInt(document.getElementById('aiQGenCount')?.value) || 5;
-  const status   = document.getElementById('aiQGenStatus');
-  const preview  = document.getElementById('aiQGenPreview');
-  if (!examples) { if (status) status.textContent = '⚠ Paste at least one example question first.'; return; }
+  const src    = document.querySelector('#aiQGenTabs .mct-src-tab.active')?.dataset?.src || 'text';
+  const count  = parseInt(document.getElementById('aiQGenCount')?.value) || 5;
+  const status = document.getElementById('aiQGenStatus');
+  const preview= document.getElementById('aiQGenPreview');
   if (status)  status.innerHTML = '<span style="color:#c9a84c">⏳ Generating…</span>';
   if (preview) preview.innerHTML = '';
   document.getElementById('aiQImportBtn').style.display = 'none';
   _aiGeneratedQuestions = [];
 
-  const prompt = `Here are example exam questions:\n\n${examples}\n\nGenerate ${count} new exam-style questions in exactly the same format, style, difficulty, and subject area. Number them 1. 2. 3. etc. Output only the questions, no commentary.`;
+  const sys = 'You are an expert exam question writer. Match the style, format, and topic of example questions precisely. Use UK English.';
 
-  let raw = '';
-  _callClaudeAPI(
-    'You are an expert exam question writer. Match the style, format, and topic of example questions precisely. Use UK English.',
-    prompt,
-    (chunk) => { raw += chunk; },
-    () => {
-      // Parse numbered questions
-      _aiGeneratedQuestions = raw.split(/\n(?=\d+\.)/).map(q => q.replace(/^\d+\.\s*/, '').trim()).filter(Boolean);
-      if (preview) {
-        preview.innerHTML = _aiGeneratedQuestions.map((q, i) =>
-          `<div class="ai-q-preview-item"><span class="ai-q-num">${i+1}</span><span>${q.replace(/\n/g,'<br>')}</span></div>`
-        ).join('');
-      }
-      if (status) status.innerHTML = `<span style="color:#7dde8a">✅ Generated ${_aiGeneratedQuestions.length} questions.</span>`;
-      document.getElementById('aiQImportBtn').style.display = '';
-    },
-    (err) => { if (status) status.innerHTML = `<span style="color:#ff9090">❌ ${err}</span>`; }
-  );
+  const finishQGen = raw => {
+    _aiGeneratedQuestions = raw.split(/\n(?=\d+\.)/).map(q => q.replace(/^\d+\.\s*/, '').trim()).filter(Boolean);
+    if (preview) preview.innerHTML = _aiGeneratedQuestions.map((q, i) =>
+      `<div class="ai-q-preview-item"><span class="ai-q-num">${i+1}</span><span>${q.replace(/\n/g,'<br>')}</span></div>`
+    ).join('');
+    if (status) status.innerHTML = `<span style="color:#7dde8a">✅ Generated ${_aiGeneratedQuestions.length} questions.</span>`;
+    document.getElementById('aiQImportBtn').style.display = '';
+  };
+  const errQGen = err => { if (status) status.innerHTML = `<span style="color:#ff9090">❌ ${err}</span>`; };
+
+  const callWithText = text => {
+    const prompt = `Here are example exam questions:\n\n${text}\n\nGenerate ${count} new exam-style questions in exactly the same format, style, difficulty, and subject area. Number them 1. 2. 3. etc. Output only the questions, no commentary.`;
+    let raw = '';
+    _callClaudeAPI(sys, prompt, chunk => { raw += chunk; }, () => finishQGen(raw), errQGen);
+  };
+
+  const callWithImage = (b64, mime) => {
+    const messages = [{ role: 'user', content: [
+      { type: 'image', source: { type: 'base64', media_type: mime, data: b64 } },
+      { type: 'text', text: `Generate ${count} new exam-style questions in exactly the same format, style, and topic as shown in this image. Number them 1. 2. 3. etc. Output only the questions.` }
+    ]}];
+    let raw = '';
+    _callClaudeAPIMessages(sys, messages, count * 200, chunk => { raw += chunk; }, () => finishQGen(raw), errQGen);
+  };
+
+  if (src === 'file') {
+    const file = document.getElementById('aiQGenFile')?.files?.[0];
+    if (!file) { status.textContent = '⚠ Choose a file first.'; return; }
+    _readAIFile(file,
+      result => result.type === 'image' ? callWithImage(result.b64, result.mime) : callWithText(result.content),
+      err => errQGen(err)
+    );
+  } else {
+    const examples = (document.getElementById('aiQGenExamples')?.value || '').trim();
+    if (!examples) { status.textContent = '⚠ Paste at least one example question first.'; return; }
+    callWithText(examples);
+  }
 }
 
 function importAIQuestions() {
@@ -5978,10 +6015,12 @@ let _mctStreak = 0;
 let _mctWrong = 0;
 let _mctTopic = '';
 let _mctLastContent = '';
+let _mctLastImage = null;
+let _mctLastImageMime = '';
 let _mctLastCount = 10;
 let _mctGeneration = 0;
 let _mctFlameRAF = null;
-let _mctSeenQuestions = []; // tracks all question stems ever shown
+let _mctSeenQuestions = [];
 
 function showMCTBuilder() {
   const modal = document.getElementById('mctBuilderModal');
@@ -6008,40 +6047,59 @@ function setMCTSource(src) {
     t.classList.toggle('active', t.dataset.src === src));
   document.getElementById('mctTextSource').style.display = src === 'text' ? '' : 'none';
   document.getElementById('mctDeckSource').style.display = src === 'deck' ? '' : 'none';
+  const fs = document.getElementById('mctFileSource');
+  if (fs) fs.style.display = src === 'file' ? '' : 'none';
 }
 
 async function runMCTGenerate() {
   const activeSrc = document.querySelector('.mct-src-tab.active')?.dataset?.src || 'text';
-  const count = parseInt(document.getElementById('mctQuestionCount')?.value) || 10;
+  const count  = parseInt(document.getElementById('mctQuestionCount')?.value) || 10;
   const status = document.getElementById('mctBuildStatus');
-  const btn = document.getElementById('mctGenerateBtn');
+  const btn    = document.getElementById('mctGenerateBtn');
+  const topic  = (document.getElementById('mctTopicInput')?.value || '').trim() || 'study material';
 
-  let content = '';
+  const proceed = () => {
+    _mctLastCount    = count;
+    _mctTopic        = topic;
+    _mctGeneration   = 0;
+    _mctSeenQuestions = [];
+    status.innerHTML = '<span style="color:var(--gold)">⏳ Generating ' + count + ' questions…</span>';
+    if (btn) btn.disabled = true;
+    _runMCTCall(
+      () => { hideMCTBuilder(); _startMCTQuiz(); },
+      err => { status.textContent = '⚠ ' + err; if (btn) btn.disabled = false; }
+    );
+  };
+
+  _mctLastContent = '';
+  _mctLastImage   = null;
+  _mctLastImageMime = '';
+
   if (activeSrc === 'text') {
-    content = (document.getElementById('mctPasteInput')?.value || '').trim();
+    const content = (document.getElementById('mctPasteInput')?.value || '').trim();
     if (!content) { status.textContent = '⚠ Paste some notes first.'; return; }
-  } else {
+    _mctLastContent = content;
+    proceed();
+  } else if (activeSrc === 'deck') {
     const deck = document.getElementById('mctDeckSelect')?.value;
     if (!deck || !db.decks[deck]) { status.textContent = '⚠ Choose a deck first.'; return; }
-    content = (db.decks[deck].cards || []).map(c => `Q: ${c.front}\nA: ${c.back}`).join('\n\n');
+    _mctLastContent = (db.decks[deck].cards || []).map(c => `Q: ${c.front}\nA: ${c.back}`).join('\n\n');
     if (!document.getElementById('mctTopicInput').value.trim())
       document.getElementById('mctTopicInput').value = deck;
+    proceed();
+  } else {
+    const file = document.getElementById('mctFileInput')?.files?.[0];
+    if (!file) { status.textContent = '⚠ Choose a file first.'; return; }
+    status.innerHTML = '<span style="color:var(--gold)">⏳ Reading file…</span>';
+    _readAIFile(file,
+      result => {
+        if (result.type === 'image') { _mctLastImage = result.b64; _mctLastImageMime = result.mime; }
+        else { _mctLastContent = result.content; }
+        proceed();
+      },
+      err => { status.textContent = '⚠ ' + err; }
+    );
   }
-
-  const topic = (document.getElementById('mctTopicInput')?.value || '').trim() || 'study material';
-  _mctLastContent  = content;
-  _mctLastCount    = count;
-  _mctTopic        = topic;
-  _mctGeneration   = 0;
-  _mctSeenQuestions = []; // fresh topic = clear history
-
-  status.innerHTML = '<span style="color:var(--gold)">⏳ Generating ' + count + ' questions…</span>';
-  if (btn) btn.disabled = true;
-
-  _runMCTCall(
-    () => { hideMCTBuilder(); _startMCTQuiz(); },
-    err => { status.textContent = '⚠ ' + err; if (btn) btn.disabled = false; }
-  );
 }
 
 function regenerateMCTQuiz() {
@@ -6080,24 +6138,30 @@ ${varietyNote}${seenBlock}`;
 
   const usr = `Topic: ${topic}\n\nContent:\n${_mctLastContent}\n\nGenerate ${count} NEW questions not listed above as a JSON array.`;
 
+  const finish = raw => {
+    try {
+      const s = raw.indexOf('['), e = raw.lastIndexOf(']') + 1;
+      if (s < 0 || e <= s) throw new Error('no array');
+      _mctQuestions = JSON.parse(raw.slice(s, e));
+      _mctQuestions.forEach(q => { if (q.q) _mctSeenQuestions.push(q.q); });
+      onDone();
+    } catch(_) { onError('Could not parse AI response — try again.'); }
+  };
+
   let raw = '';
-  _callClaudeAPI(sys, usr,
-    chunk => { raw += chunk; },
-    () => {
-      try {
-        const s = raw.indexOf('['), e = raw.lastIndexOf(']') + 1;
-        if (s < 0 || e <= s) throw new Error('no array');
-        _mctQuestions = JSON.parse(raw.slice(s, e));
-        // Remember these questions so they're never repeated
-        _mctQuestions.forEach(q => { if (q.q) _mctSeenQuestions.push(q.q); });
-        onDone();
-      } catch(_) {
-        onError('Could not parse AI response — try again.');
-      }
-    },
-    err => onError(err),
-    count * 250
-  );
+  if (_mctLastImage) {
+    const imageUsr = `Topic: ${topic}\n\nGenerate ${count} NEW MCT questions from the image as a JSON array.${seenBlock}`;
+    const messages = [{
+      role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: _mctLastImageMime, data: _mctLastImage } },
+        { type: 'text', text: imageUsr }
+      ]
+    }];
+    _callClaudeAPIMessages(sys, messages, count * 250,
+      chunk => { raw += chunk; }, () => finish(raw), err => onError(err));
+  } else {
+    _callClaudeAPI(sys, usr, chunk => { raw += chunk; }, () => finish(raw), err => onError(err), count * 250);
+  }
 }
 
 function _startMCTQuiz() {
@@ -6343,6 +6407,20 @@ function runAICardGen() {
     const notes = (document.getElementById('aiCardGenInput')?.value || '').trim();
     if (!notes) { status.textContent = '⚠ Paste some notes first.'; return; }
     _genCardsFromText(notes, count, status, preview);
+  }
+}
+
+// Shared helper — reads file input and returns { type:'text', content } or { type:'image', b64, mime }
+function _readAIFile(file, onReady, onError) {
+  const isImage = file.type.startsWith('image/');
+  const reader  = new FileReader();
+  reader.onerror = () => onError('Could not read file.');
+  if (isImage) {
+    reader.onload = e => onReady({ type: 'image', b64: e.target.result.split(',')[1], mime: file.type });
+    reader.readAsDataURL(file);
+  } else {
+    reader.onload = e => onReady({ type: 'text', content: e.target.result });
+    reader.readAsText(file);
   }
 }
 
