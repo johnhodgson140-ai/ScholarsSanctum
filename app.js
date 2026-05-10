@@ -6302,7 +6302,12 @@ function showAICardGen() {
     document.getElementById('aiCardGenStatus').textContent = '';
     document.getElementById('aiCardGenPreview').innerHTML = '';
     document.getElementById('aiCardImportBtn').style.display = 'none';
+    const fp = document.getElementById('aiCardFilePreview');
+    const fi = document.getElementById('aiCardFileInput');
+    if (fp) fp.textContent = '';
+    if (fi) fi.value = '';
     _aiGeneratedCards = [];
+    setAICardSource('text');
     modal.style.display = 'flex';
   }
 }
@@ -6312,38 +6317,96 @@ function hideAICardGen() {
   if (m) m.style.display = 'none';
 }
 
+function setAICardSource(src) {
+  document.querySelectorAll('#aiCardGenModal .mct-src-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.src === src));
+  document.getElementById('aiCardTextSource').style.display = src === 'text' ? '' : 'none';
+  document.getElementById('aiCardFileSource').style.display = src === 'file' ? '' : 'none';
+}
+
 function runAICardGen() {
-  const notes  = (document.getElementById('aiCardGenInput')?.value || '').trim();
+  const src    = document.querySelector('#aiCardGenModal .mct-src-tab.active')?.dataset?.src || 'text';
   const count  = parseInt(document.getElementById('aiCardCount')?.value) || 8;
   const status = document.getElementById('aiCardGenStatus');
   const preview= document.getElementById('aiCardGenPreview');
-  if (!notes) { if (status) status.textContent = '⚠ Paste some notes first.'; return; }
+
   if (status)  status.innerHTML = '<span>⏳ Generating…</span>';
   if (preview) preview.innerHTML = '';
   _aiGeneratedCards = [];
   document.getElementById('aiCardImportBtn').style.display = 'none';
 
-  const prompt = `From the following notes, generate exactly ${count} flashcard pairs. Format each as:\nFRONT: [question or term]\nBACK: [answer or definition]\n\nNotes:\n${notes}`;
+  if (src === 'file') {
+    const file = document.getElementById('aiCardFileInput')?.files?.[0];
+    if (!file) { status.textContent = '⚠ Choose a file first.'; return; }
+    _readFileAndGenCards(file, count, status, preview);
+  } else {
+    const notes = (document.getElementById('aiCardGenInput')?.value || '').trim();
+    if (!notes) { status.textContent = '⚠ Paste some notes first.'; return; }
+    _genCardsFromText(notes, count, status, preview);
+  }
+}
 
+function _readFileAndGenCards(file, count, status, preview) {
+  const isImage = file.type.startsWith('image/');
+  const reader  = new FileReader();
+
+  if (isImage) {
+    reader.onload = e => {
+      const b64  = e.target.result.split(',')[1];
+      const mime = file.type;
+      status.innerHTML = '<span>⏳ Reading image…</span>';
+      _genCardsFromImage(b64, mime, count, status, preview);
+    };
+    reader.readAsDataURL(file);
+  } else {
+    reader.onload = e => _genCardsFromText(e.target.result, count, status, preview);
+    reader.readAsText(file);
+  }
+
+  // Show filename
+  const fp = document.getElementById('aiCardFilePreview');
+  if (fp) fp.textContent = '📎 ' + file.name;
+}
+
+function _genCardsFromText(notes, count, status, preview) {
+  const sys    = 'You are an expert study assistant. Create concise, clear flashcards. Front = question or key term. Back = answer or definition. Keep backs under 60 words.';
+  const prompt = `From the following notes, generate exactly ${count} flashcard pairs. Format each as:\nFRONT: [question or term]\nBACK: [answer or definition]\n\nNotes:\n${notes}`;
   let raw = '';
-  _callClaudeAPI(
-    'You are an expert study assistant. Create concise, clear flashcards. Front = question or key term. Back = answer or definition. Keep backs under 60 words.',
-    prompt,
-    (chunk) => { raw += chunk; },
-    () => {
-      // Parse FRONT/BACK pairs
-      const pairs = [...raw.matchAll(/FRONT:\s*(.+?)\nBACK:\s*(.+?)(?=\nFRONT:|$)/gs)];
-      _aiGeneratedCards = pairs.map(m => ({ front: m[1].trim(), back: m[2].trim() }));
-      if (preview) {
-        preview.innerHTML = _aiGeneratedCards.map((c, i) =>
-          `<div class="ai-card-preview"><div class="ai-card-front">Q${i+1}: ${c.front}</div><div class="ai-card-back">${c.back}</div></div>`
-        ).join('');
-      }
-      if (status) status.innerHTML = `<span style="color:#7dde8a">✅ Generated ${_aiGeneratedCards.length} cards.</span>`;
-      if (_aiGeneratedCards.length) document.getElementById('aiCardImportBtn').style.display = '';
-    },
-    (err) => { if (status) status.innerHTML = `<span style="color:#ff9090">❌ ${err}</span>`; }
+  _callClaudeAPI(sys, prompt,
+    chunk => { raw += chunk; },
+    () => _finishCardGen(raw, status, preview),
+    err  => { status.innerHTML = `<span style="color:#ff9090">❌ ${err}</span>`; },
+    count * 150
   );
+}
+
+function _genCardsFromImage(b64, mime, count, status, preview) {
+  const sys = 'You are an expert study assistant. Create concise, clear flashcards from the image content. Front = question or key term. Back = answer or definition. Keep backs under 60 words.';
+  const messages = [{
+    role: 'user',
+    content: [
+      { type: 'image', source: { type: 'base64', media_type: mime, data: b64 } },
+      { type: 'text', text: `Generate exactly ${count} flashcard pairs from the content in this image. Format each as:\nFRONT: [question or term]\nBACK: [answer or definition]` }
+    ]
+  }];
+  let raw = '';
+  _callClaudeAPIMessages(sys, messages, count * 150,
+    chunk => { raw += chunk; },
+    () => _finishCardGen(raw, status, preview),
+    err  => { status.innerHTML = `<span style="color:#ff9090">❌ ${err}</span>`; }
+  );
+}
+
+function _finishCardGen(raw, status, preview) {
+  const pairs = [...raw.matchAll(/FRONT:\s*(.+?)\nBACK:\s*(.+?)(?=\nFRONT:|$)/gs)];
+  _aiGeneratedCards = pairs.map(m => ({ front: m[1].trim(), back: m[2].trim() }));
+  if (preview) {
+    preview.innerHTML = _aiGeneratedCards.map((c, i) =>
+      `<div class="ai-card-preview"><div class="ai-card-front">Q${i+1}: ${_tesc(c.front)}</div><div class="ai-card-back">${_tesc(c.back)}</div></div>`
+    ).join('');
+  }
+  if (status) status.innerHTML = `<span style="color:#7dde8a">✅ Generated ${_aiGeneratedCards.length} cards.</span>`;
+  if (_aiGeneratedCards.length) document.getElementById('aiCardImportBtn').style.display = '';
 }
 
 function importAICards() {

@@ -292,10 +292,29 @@
   <div class="modal-overlay" id="aiCardGenModal" style="display:none" onclick="hideAICardGen()">
     <div class="rpg-modal ai-cardgen-modal" onclick="event.stopPropagation()" style="max-width:560px">
       <div class="modal-title">✨ Generate Flashcards with AI</div>
-      <p class="rpg-hint" style="margin-bottom:12px">Paste notes, a paragraph, or bullet points. AI will create front/back flashcard pairs.</p>
-      <textarea class="rpg-input" id="aiCardGenInput" rows="7"
-        placeholder="Paste lecture notes, textbook extract, or bullet points here…"
-        style="resize:vertical;font-family:'Crimson Text',serif"></textarea>
+
+      <!-- Source tabs -->
+      <div class="mct-source-tabs" style="margin-bottom:12px">
+        <button class="mct-src-tab active" data-src="text" onclick="setAICardSource('text')">📝 Paste Notes</button>
+        <button class="mct-src-tab" data-src="file" onclick="setAICardSource('file')">📎 Upload File</button>
+      </div>
+
+      <!-- Text source -->
+      <div id="aiCardTextSource">
+        <textarea class="rpg-input" id="aiCardGenInput" rows="7"
+          placeholder="Paste lecture notes, textbook extract, or bullet points here…"
+          style="resize:vertical;font-family:'Crimson Text',serif"></textarea>
+      </div>
+
+      <!-- File source -->
+      <div id="aiCardFileSource" style="display:none">
+        <p class="rpg-hint" style="margin-bottom:10px">Upload a text file (.txt .md .csv) or an image/photo of your notes (.jpg .png .webp). AI reads it and generates cards.</p>
+        <input type="file" class="rpg-input" id="aiCardFileInput"
+          accept=".txt,.md,.csv,.jpg,.jpeg,.png,.webp,.gif"
+          style="padding:10px;cursor:pointer">
+        <div id="aiCardFilePreview" style="margin-top:8px;font-family:'Crimson Text',serif;font-size:0.9rem;color:var(--gold)"></div>
+      </div>
+
       <div style="display:flex;gap:8px;align-items:center;margin:12px 0 0">
         <label class="rpg-label" style="margin:0">Cards to generate:</label>
         <input class="rpg-input small" type="number" id="aiCardCount" value="8" min="2" max="20" style="width:70px;margin:0">
