@@ -35,6 +35,24 @@ body {
   text-rendering: optimizeSpeed;
 }
 
+/* ── Global performance ── */
+*, *::before, *::after { box-sizing: border-box; }
+/* GPU-accelerate only elements that actually move */
+.flashcard, .card-inner, .flashcard-wrapper,
+.flame-canvas, .island-canvas,
+.calculator-widget, .table-panel,
+.ai-panel, .edit-panel,
+.modal-overlay, .rpg-modal,
+.levelup-overlay {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+/* Trim transition times — snappier clicks */
+.rpg-btn { transition: background 0.08s, transform 0.08s, box-shadow 0.08s !important; }
+button, a { -webkit-tap-highlight-color: transparent; }
+/* Prevent layout thrash on scroll */
+.page-content, .world-map, .cal-grid, .write-center { contain: layout style; }
+
 /* Buttons never delay on touch */
 button, a, [onclick] {
   touch-action: manipulation;

@@ -276,7 +276,14 @@ function applyTheme() {
 
 // Mobile mode is stored per-device in localStorage (not synced) so phone/desktop stay independent
 function _getMobileMode() {
-  try { return localStorage.getItem('sanctumMobileMode') === 'true'; } catch(e) { return false; }
+  try {
+    const stored = localStorage.getItem('sanctumMobileMode');
+    if (stored !== null) return stored === 'true';
+    // Auto-detect on very first visit — phones default to mobile mode, desktops to desktop
+    const isMobile = window.innerWidth <= 820 || navigator.maxTouchPoints > 1;
+    _setMobileMode(isMobile);
+    return isMobile;
+  } catch(e) { return false; }
 }
 function _setMobileMode(on) {
   try { localStorage.setItem('sanctumMobileMode', on ? 'true' : 'false'); } catch(e) {}
