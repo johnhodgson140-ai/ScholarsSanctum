@@ -7825,8 +7825,8 @@ document.addEventListener('keydown', e => {
 
 // ── QR Code — open app on another device ──
 function showQRCode() {
-  const url = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/index.html').replace(/\/index\.html$/, '/') || window.location.origin;
-  const appUrl = window.location.origin; // just the root URL
+  // Build the app root URL from the current page's path (works on any host/subfolder)
+  const appUrl = window.location.href.replace(/\/[^/]*$/, '/');
 
   let m = document.getElementById('qrModal');
   if (!m) {
