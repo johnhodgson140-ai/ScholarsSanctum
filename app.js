@@ -6144,6 +6144,7 @@ ${varietyNote}${seenBlock}`;
       if (s < 0 || e <= s) throw new Error('no array');
       _mctQuestions = JSON.parse(raw.slice(s, e));
       _mctQuestions.forEach(q => { if (q.q) _mctSeenQuestions.push(q.q); });
+      if (_mctSeenQuestions.length > 40) _mctSeenQuestions = _mctSeenQuestions.slice(-40); // keep last 40 only
       onDone();
     } catch(_) { onError('Could not parse AI response — try again.'); }
   };
