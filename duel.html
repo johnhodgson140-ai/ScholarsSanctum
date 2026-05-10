@@ -1,0 +1,366 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholar's Sanctum — Duel Arena</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#c9a84c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sanctum">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script></head>
+<body class="duel-page">
+
+  <div class="bg-layer fog-layer"></div>
+  <div class="bg-layer particle-layer" id="particles"></div>
+  <div class="bg-layer vignette-layer"></div>
+
+  <header class="rpg-header">
+    <div class="header-ornament left">⚜</div>
+    <div class="header-center">
+      <h1 class="site-title" id="duelHeaderTitle">Duel Arena</h1>
+    </div>
+    <div class="header-ornament right">⚜</div>
+    <nav class="top-nav">
+      <a href="index.html" class="nav-link">🗺 World Map</a>
+      <a href="stats.html" class="nav-link">⚔ Character</a>
+      <a href="settings.html" class="nav-link">⚙ Tome</a>
+    <a href="practice.html" class="nav-link">✍️ Practice</a>
+          <a href="calendar.html" class="nav-link">📅 Chronicle</a>
+    </nav>
+  </header>
+
+  <!-- VIEW 1: Portal selection -->
+  <div id="duelPortalView" style="display:none">
+
+    <!-- Tab switcher -->
+    <div class="duel-tab-bar">
+      <button class="duel-tab active" id="duelTabRealms" onclick="switchDuelTab('realms')">🗺 Realms</button>
+      <button class="duel-tab" id="duelTabDecks"  onclick="switchDuelTab('decks')">📖 All Decks</button>
+    </div>
+
+    <!-- Realms panel -->
+    <div id="duelRealmsPanel">
+      <div class="duel-view-subtitle">Choose a Realm to enter the Arena</div>
+      <div class="map-grid" id="duelPortalGrid"></div>
+      <div class="empty-map" id="duelPortalEmpty" style="display:none">
+        <p class="empty-text">✨ No realms exist yet. Create portals on the World Map first.</p>
+      </div>
+    </div>
+
+    <!-- All Decks panel -->
+    <div id="duelDecksPanel" style="display:none">
+      <div class="duel-view-subtitle">Choose a Deck to Duel</div>
+      <div class="duel-deck-search-row">
+        <input class="rpg-input" id="duelDeckSearch" placeholder="Search decks…"
+          oninput="filterDuelDecks(this.value)" autocomplete="off"
+          style="max-width:320px;margin:0">
+      </div>
+      <div class="duel-sub-grid" id="duelDeckGrid"></div>
+      <div class="empty-map" id="duelDeckEmpty" style="display:none">
+        <p class="empty-text">No decks found.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- VIEW 2: Sub-realm selection -->
+  <div id="duelSubView" style="display:none">
+    <a class="duel-back-link" id="duelSubBack" href="duel.html">← Back to Realms</a>
+    <div class="duel-view-subtitle" id="duelSubTitle">Choose a Sub-Realm to duel</div>
+    <div class="duel-sub-grid" id="duelSubGrid"></div>
+    <div class="empty-map" id="duelSubEmpty" style="display:none">
+      <p class="empty-text">This realm has no sub-realms. Add sub-realms from the folder page.</p>
+    </div>
+  </div>
+
+  <!-- VIEW 2.5: Mode selector -->
+  <div id="duelModeView" style="display:none">
+    <button class="duel-back-link" id="duelModeBack" onclick="showDuelSubView()">← Back</button>
+    <div class="duel-view-subtitle">Choose Your Battle Mode</div>
+    <div class="duel-mode-grid">
+      <div class="duel-mode-card" onclick="confirmCardDuel()">
+        <div class="duel-mode-icon">⚔️</div>
+        <div class="duel-mode-title">Card Duel</div>
+        <div class="duel-mode-desc">Flip your own flashcards and self-rate with red, amber, and green gems</div>
+        <button class="rpg-btn primary" style="margin-top:14px">⚔ Start Card Duel</button>
+      </div>
+      <div class="duel-mode-card" onclick="startAIDuel()">
+        <div class="duel-mode-icon">🤖</div>
+        <div class="duel-mode-title">AI Duel</div>
+        <div class="duel-mode-desc">AI generates exam-style questions from your deck topics. Type your answer and get instant marking and feedback</div>
+        <button class="rpg-btn primary ai-btn" style="margin-top:14px">✨ Start AI Duel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 4: AI Duel Arena — same layout as flashcard study page -->
+  <div id="aiDuelView" style="display:none">
+    <button class="duel-back-link" onclick="exitAIDuel()" style="position:relative;z-index:10">← End Duel</button>
+
+    <!-- XP bar — identical to deck.html, updated by updateXPBar() -->
+    <div class="xp-bar-container" id="aiDuelXpContainer">
+      <div class="xp-bar-frame">
+        <div class="xp-level-label" id="aiDuelXpLevel">Level 1</div>
+        <div class="xp-track">
+          <div class="xp-fill" id="aiDuelXpFill"></div>
+          <div class="xp-shimmer"></div>
+        </div>
+        <div class="xp-count-label" id="aiDuelXpCount">0 / 10 XP</div>
+      </div>
+    </div>
+
+    <!-- Session scoreboard — sits above everything, always visible -->
+    <div class="duel-streak-panel ai-duel-scoreboard">
+      <div class="duel-streak-item">
+        <span class="duel-streak-label">⚡ XP Earned</span>
+        <span class="duel-streak-value" id="aiDuelSessionXP">0</span>
+      </div>
+      <div class="duel-streak-item">
+        <span class="duel-streak-label">✅ Correct</span>
+        <span class="duel-streak-value" id="aiDuelCorrect">0</span>
+      </div>
+      <div class="duel-streak-item">
+        <span class="duel-streak-label">🔥 Streak</span>
+        <span class="duel-streak-value" id="aiDuelStreakHUD">0</span>
+      </div>
+      <div class="duel-streak-item">
+        <span class="duel-streak-label">📋 Question</span>
+        <span class="duel-streak-value" id="aiDuelQNum">1</span>
+      </div>
+    </div>
+
+    <div class="study-main">
+      <div class="deck-study-title" id="aiDuelTitle">AI Duel</div>
+
+      <div class="study-arena">
+
+        <!-- LEFT: Rank badge (same as flashcard page) -->
+        <div class="rank-panel">
+          <div class="rank-badge">
+            <span class="rank-icon" id="aiDuelRankIcon">📜</span>
+            <div class="rank-divider"></div>
+            <div class="rank-level" id="aiDuelRankLevel">Level 1</div>
+            <div class="rank-title-label" id="aiDuelRankTitle">Apprentice Scholar</div>
+          </div>
+        </div>
+
+        <!-- CENTER: Question card (always visible) + answer below -->
+        <div class="flashcard-wrapper">
+
+          <!-- Question shown as a card face — always visible, no flip -->
+          <div class="flashcard ai-duel-card-static">
+            <div class="card-face card-front" style="transform:none;backface-visibility:visible;position:relative">
+              <div class="ai-duel-q-chip">⚔ Challenge</div>
+              <div class="card-content" id="aiDuelQuestion" style="padding:24px 28px">
+                <div class="ai-thinking"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Answer area (below card) -->
+          <div class="ai-duel-answer-wrap" id="aiDuelAnswerWrap" style="display:none;margin-top:14px">
+            <textarea class="ai-duel-textarea" id="aiDuelInput"
+              placeholder="Type your answer here…"
+              autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+              onkeydown="if(event.ctrlKey&&event.key==='Enter')submitAIDuelAnswer()"></textarea>
+            <div class="ai-duel-hint">Ctrl + Enter to submit</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="rpg-btn primary" onclick="submitAIDuelAnswer()" id="aiDuelSubmitBtn" style="flex:1">⚔ Submit Answer</button>
+              <button class="rpg-btn" onclick="showCalculator()" title="Calculator" style="flex-shrink:0">🔢 Calc</button>
+            </div>
+          </div>
+
+          <!-- Feedback (replaces answer area after submission) -->
+          <div class="ai-duel-feedback" id="aiDuelFeedback" style="display:none;margin-top:14px">
+            <div class="ai-duel-score-badge" id="aiDuelScoreBadge"></div>
+            <div class="ai-duel-feedback-text" id="aiDuelFeedbackText"></div>
+            <div class="ai-duel-next-row" style="margin-top:12px">
+              <button class="rpg-btn primary" onclick="nextAIDuelQuestion()">Next Question ▶</button>
+              <button class="rpg-btn" onclick="exitAIDuel()">📊 End &amp; Summary</button>
+            </div>
+          </div>
+
+          <!-- Question counter -->
+          <div class="card-counter" id="aiDuelCounter">Question 1</div>
+        </div>
+
+        <!-- RIGHT: Island + Flame — identical to flashcard page -->
+        <div class="right-panel">
+          <canvas class="island-canvas" id="aiDuelIsland" width="200" height="210"></canvas>
+          <div class="flame-container">
+            <div class="flame-wrap">
+              <canvas class="flame-canvas" id="aiDuelFlame" width="90" height="120"></canvas>
+              <div class="flame-counter" id="aiDuelStreak">0</div>
+            </div>
+            <div class="flame-label">Streak</div>
+            <div class="flame-best" id="aiDuelBestStreakLabel">Best: 0</div>
+          </div>
+        </div>
+
+      </div><!-- end study-arena -->
+    </div><!-- end study-main -->
+  </div>
+
+  <!-- VIEW 3: Duel study mode -->
+  <div id="duelStudyView" style="display:none">
+    <a class="duel-back-link" id="duelStudyBack" href="">← Back</a>
+
+    <!-- XP Bar (uses same classes as deck so updateXPBar() works) -->
+    <div class="xp-bar-container">
+      <div class="xp-bar-frame">
+        <div class="xp-level-label">Level 1</div>
+        <div class="xp-track">
+          <div class="xp-fill"></div>
+          <div class="xp-shimmer"></div>
+        </div>
+        <div class="xp-count-label">0 / 10 XP</div>
+      </div>
+    </div>
+
+    <!-- Duel streak HUD -->
+    <div class="duel-streak-panel">
+      <div class="duel-streak-item">
+        <span class="duel-streak-label">⚔ Streak</span>
+        <span class="duel-streak-value" id="duelStreakCount">0</span>
+      </div>
+      <div class="duel-streak-item">
+        <span class="duel-streak-label">⚡ XP</span>
+        <span class="duel-streak-value" id="duelSessionXP">0</span>
+      </div>
+      <div class="duel-streak-item">
+        <span class="duel-streak-label">📚 Cards</span>
+        <span class="duel-streak-value" id="duelCardCount">0</span>
+      </div>
+    </div>
+
+    <!-- Study arena (rank | card | right panel) — mirrors deck.html -->
+    <div class="study-arena">
+
+      <!-- Rank Badge (LEFT) -->
+      <div class="rank-panel">
+        <div class="rank-badge">
+          <span class="rank-icon" id="rankIcon">📜</span>
+          <div class="rank-divider"></div>
+          <div class="rank-level" id="rankLevel">Level 1</div>
+          <div class="rank-title-label" id="rankTitleLabel">Apprentice Scholar</div>
+        </div>
+      </div>
+
+      <!-- Flashcard -->
+      <div class="flashcard-wrapper">
+        <div class="flashcard" id="duelCard" onclick="flipDuelCard(event)">
+          <div class="card-inner" id="duelCardInner">
+            <div class="card-face card-front">
+              <div class="card-content" id="duelFrontContent">Click to begin</div>
+              <div class="card-img-wrap" id="duelFrontImg"></div>
+            </div>
+            <div class="card-face card-back">
+              <div class="card-content" id="duelBackContent"></div>
+              <div class="card-img-wrap" id="duelBackImg"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card navigation -->
+        <div class="card-nav">
+          <button class="rpg-btn nav-btn" onclick="duelPrevCard()">◀ Prev</button>
+          <button class="rpg-btn nav-btn" onclick="duelShuffle()">🔀 Shuffle</button>
+          <button class="rpg-btn nav-btn" onclick="showCalculator()" title="Calculator">🔢</button>
+          <button class="rpg-btn nav-btn" onclick="duelNextCard()">Next ▶</button>
+        </div>
+        <div class="duel-deck-source" id="duelDeckSource"></div>
+      </div>
+
+      <!-- Right panel: island + flame -->
+      <div class="right-panel">
+        <canvas class="island-canvas" id="islandCanvas" width="200" height="210"></canvas>
+        <div class="flame-container" id="flameContainer">
+          <div class="flame-wrap">
+            <canvas class="flame-canvas" id="flameCanvas" width="90" height="120"></canvas>
+            <div class="flame-counter" id="flameCounter">0</div>
+          </div>
+          <div class="flame-label">Streak</div>
+          <div class="flame-best" id="flameBest">Best: 0</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RAG buttons -->
+    <div class="rag-gems">
+      <button class="gem red-gem" onclick="markDuel('red')" title="Again (1)"></button>
+      <button class="gem amber-gem" onclick="markDuel('amber')" title="Hard (2)"></button>
+      <button class="gem green-gem" onclick="markDuel('green')" title="Got it (3)"></button>
+      <button class="rag-tools-toggle" id="ragToolsToggle" onclick="toggleRagActions()" title="Show tools">⋯</button>
+    </div>
+
+    <!-- RAG actions -->
+    <div class="rag-actions" id="ragActions">
+      <button class="rpg-btn small" onclick="duelUndo()" title="Undo (U)">↩ Undo</button>
+      <button class="rpg-btn small" onclick="showDuelSummary()">📊 Summary</button>
+    </div>
+
+    <!-- Motivational -->
+    <div class="motivational" id="duelMotivational"></div>
+  </div>
+
+  <!-- Level Up Overlay (shared with deck page logic) -->
+  <div class="levelup-overlay" id="levelupOverlay" style="display:none">
+    <div class="levelup-content">
+      <div class="levelup-title">⚡ LEVEL UP! ⚡</div>
+      <div class="levelup-level" id="levelupLevel"></div>
+      <div class="levelup-title-rank" id="levelupRank"></div>
+    </div>
+    <canvas id="particleCanvas" class="particle-canvas"></canvas>
+  </div>
+
+  <!-- Duel Session Summary Modal -->
+  <div class="modal-overlay" id="duelSummaryModal" style="display:none" onclick="hideDuelSummary()">
+    <div class="rpg-modal" onclick="event.stopPropagation()">
+      <div class="modal-title">📊 Duel Summary</div>
+      <div class="session-grid">
+        <div class="session-row"><span>🔴 Red</span><span id="duelSumRed">0</span></div>
+        <div class="session-row"><span>🟡 Amber</span><span id="duelSumAmber">0</span></div>
+        <div class="session-row"><span>🟢 Green</span><span id="duelSumGreen">0</span></div>
+        <div class="session-row"><span>📚 Total</span><span id="duelSumTotal">0</span></div>
+        <div class="session-row"><span>⏱ Time</span><span id="duelSumTime">00:00</span></div>
+        <div class="session-row"><span>⚡ XP Earned</span><span id="duelSumXP">0</span></div>
+        <div class="session-row"><span>⚔ Best Streak</span><span id="duelSumStreak">0</span></div>
+      </div>
+      <div class="modal-actions">
+        <button class="rpg-btn primary" onclick="hideDuelSummary()">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievement Toast -->
+  <div class="achievement-toast" id="achievementToast" style="display:none">
+    <div class="toast-icon" id="toastIcon"></div>
+    <div class="toast-text">
+      <div class="toast-title" id="toastTitle"></div>
+      <div class="toast-desc" id="toastDesc"></div>
+    </div>
+  </div>
+
+  <!-- Arcane corner decorations -->
+  <div class="arcane-corner tl">✦</div>
+  <div class="arcane-corner tr">✦</div>
+  <div class="arcane-corner bl">◊</div>
+  <div class="arcane-corner br">◊</div>
+
+  <script src="app.js"></script>
+  <script>
+    initApp();
+    loadDuelPage();
+    spawnParticles();
+  </script>
+</body>
+</html>

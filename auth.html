@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholar's Sanctum — Enter</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#c9a84c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+</head>
+<body class="auth-page">
+
+  <div class="bg-layer fog-layer"></div>
+  <div class="bg-layer particle-layer" id="particles"></div>
+  <div class="bg-layer vignette-layer"></div>
+
+  <div class="auth-container">
+    <div class="auth-logo">
+      <img src="icon.svg" alt="Scholar's Sanctum" class="auth-logo-img">
+    </div>
+    <h1 class="auth-title">Scholar's Sanctum</h1>
+    <p class="auth-subtitle">Enter the realm of knowledge</p>
+
+    <!-- Tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="showTab('login')">Sign In</button>
+      <button class="auth-tab" id="tabRegister" onclick="showTab('register')">Create Account</button>
+    </div>
+
+    <!-- Login Form -->
+    <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
+      <input class="rpg-input auth-input" type="email" id="loginEmail" placeholder="Email address" required autocomplete="email">
+      <input class="rpg-input auth-input" type="password" id="loginPassword" placeholder="Password" required autocomplete="current-password">
+      <div class="auth-error" id="loginError"></div>
+      <button class="rpg-btn primary auth-btn" type="submit" id="loginBtn">⚔ Enter the Sanctum</button>
+    </form>
+
+    <!-- Register Form -->
+    <form class="auth-form" id="registerForm" style="display:none" onsubmit="handleRegister(event)">
+      <input class="rpg-input auth-input" type="text" id="regName" placeholder="Username (2–20 chars)" required maxlength="20" autocomplete="nickname" oninput="liveCheckUsername(this.value)">
+      <div class="auth-username-hint" id="usernameHint"></div>
+      <input class="rpg-input auth-input" type="email" id="regEmail" placeholder="Email address" required autocomplete="email">
+      <input class="rpg-input auth-input" type="password" id="regPassword" placeholder="Password (min 6 characters)" required minlength="6" autocomplete="new-password">
+      <div class="auth-error" id="registerError"></div>
+      <button class="rpg-btn primary auth-btn" type="submit" id="registerBtn">✨ Begin Your Journey</button>
+    </form>
+  </div>
+
+  <div class="arcane-corner tl">✦</div>
+  <div class="arcane-corner tr">✦</div>
+  <div class="arcane-corner bl">◊</div>
+  <div class="arcane-corner br">◊</div>
+
+  <script src="app.js"></script>
+  <script>
+    // Auto-redirect if already logged in
+    _loadAuth();
+    if (_auth) window.location.replace('index.html');
+
+    spawnParticles();
+
+    function showTab(tab) {
+      document.getElementById('loginForm').style.display    = tab === 'login'    ? 'flex' : 'none';
+      document.getElementById('registerForm').style.display = tab === 'register' ? 'flex' : 'none';
+      document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+      document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      const err = document.getElementById('loginError');
+      btn.textContent = '⏳ Entering…'; btn.disabled = true; err.textContent = '';
+      try {
+        await loginUser(
+          document.getElementById('loginEmail').value.trim(),
+          document.getElementById('loginPassword').value
+        );
+      } catch(ex) {
+        err.textContent = ex.message;
+        btn.textContent = '⚔ Enter the Sanctum'; btn.disabled = false;
+      }
+    }
+
+    function liveCheckUsername(val) {
+      const hint = document.getElementById('usernameHint');
+      const err = _validateUsername(val);
+      if (!val) { hint.textContent = ''; hint.className = 'auth-username-hint'; return; }
+      if (err) { hint.textContent = '✗ ' + err; hint.className = 'auth-username-hint bad'; }
+      else      { hint.textContent = '✓ Looks good!'; hint.className = 'auth-username-hint good'; }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const btn = document.getElementById('registerBtn');
+      const err = document.getElementById('registerError');
+      const name = document.getElementById('regName').value.trim();
+
+      // Block submit if username invalid
+      const usernameErr = _validateUsername(name);
+      if (usernameErr) { err.textContent = usernameErr; return; }
+
+      btn.textContent = '⏳ Creating…'; btn.disabled = true; err.textContent = '';
+      try {
+        await registerUser(
+          name,
+          document.getElementById('regEmail').value.trim(),
+          document.getElementById('regPassword').value
+        );
+      } catch(ex) {
+        err.textContent = ex.message;
+        btn.textContent = '✨ Begin Your Journey'; btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,446 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholar's Sanctum — Practice Chamber</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#c9a84c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sanctum">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script></head>
+<body class="practice-page">
+
+  <div class="bg-layer fog-layer"></div>
+  <div class="bg-layer particle-layer" id="particles"></div>
+  <div class="bg-layer vignette-layer"></div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- VIEW 1: Book Picker (World Map style)          -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div id="scrollPickerView">
+
+    <header class="rpg-header">
+      <div class="header-ornament left">⚜</div>
+      <div class="header-center">
+        <h1 class="site-title">Practice Chamber</h1>
+        <p class="site-subtitle">Choose Your Practice Book</p>
+      </div>
+      <div class="header-ornament right">⚜</div>
+      <nav class="top-nav">
+        <a href="index.html" class="nav-link">🗺 World Map</a>
+        <a href="stats.html" class="nav-link">⚔ Character</a>
+        <a href="duel.html" class="nav-link">🤺 Duel</a>
+        <a href="settings.html" class="nav-link">⚙ Tome</a>
+            <a href="calendar.html" class="nav-link">📅 Chronicle</a>
+    </nav>
+    </header>
+
+    <main class="world-map" id="bookPickerMain">
+      <div class="map-grid" id="scrollPickerGrid"></div>
+      <div class="empty-map" id="scrollPickerEmpty" style="display:none">
+        <p class="empty-text">📚 No practice books yet — open your first one below.</p>
+      </div>
+    </main>
+
+    <div class="create-portal-area">
+      <button class="create-portal-btn gold" onclick="showNewScrollModal()">📖 New Practice Book</button>
+      <button class="create-portal-btn" onclick="showMCTBuilder()" style="background:rgba(80,40,160,0.7);border-color:rgba(140,100,255,0.5)">🔠 MCT Quiz Builder</button>
+    </div>
+
+    <!-- Rename Book Modal -->
+    <div class="modal-overlay" id="renameBookModal" style="display:none" onclick="hideRenameBook()">
+      <div class="rpg-modal" onclick="event.stopPropagation()">
+        <div class="modal-title">✏️ Rename Book</div>
+        <input class="rpg-input" id="renameBookInput" placeholder="New name…" maxlength="40">
+        <div class="modal-actions">
+          <button class="rpg-btn primary" onclick="confirmRenameBook()">✅ Rename</button>
+          <button class="rpg-btn" onclick="hideRenameBook()">✖ Cancel</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- VIEW 2: Write Mode                             -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div id="scrollWriteView" style="display:none">
+
+    <!-- Write top bar -->
+    <div class="write-topbar">
+      <button class="write-back-btn" onclick="exitToScrollPicker()">← Books</button>
+      <div class="write-scroll-name" id="writeScrollName"></div>
+      <!-- Font size inline in topbar -->
+      <select class="format-select" id="fontSizeSelect" onchange="applyWriteFormat()" style="margin-left:10px">
+        <option value="10pt">10pt</option>
+        <option value="11pt">11pt</option>
+        <option value="12pt" selected>12pt</option>
+        <option value="13pt">13pt</option>
+        <option value="14pt">14pt</option>
+        <option value="16pt">16pt</option>
+        <option value="18pt">18pt</option>
+        <option value="20pt">20pt</option>
+        <option value="24pt">24pt</option>
+        <option value="28pt">28pt</option>
+        <option value="32pt">32pt</option>
+      </select>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;align-items:center">
+        <button class="rpg-btn small" onclick="showAddQuestion()">❓ Question</button>
+        <button class="rpg-btn small" onclick="autoGeneratePracticeQuestion()">⚡ Auto Q</button>
+        <button class="rpg-btn small" onclick="toggleVoiceInput('writeTextarea')" id="voiceBtn">🎙️ Voice</button>
+        <button class="rpg-btn small" onclick="showExamModeSetup()">⏱ Exam</button>
+        <button class="rpg-btn small" onclick="exportAnswerToPDF()">📄 Export</button>
+        <button class="rpg-btn small" onclick="showCalculator()">🔢 Calc</button>
+        <button class="rpg-btn small" onclick="showTAccountPad()">⚖️ T-Account</button>
+        <button class="rpg-btn small" onclick="showRatioReference()">📊 Ratios</button>
+        <button class="rpg-btn small ai-btn" onclick="toggleAIPanel()" id="aiPanelBtn">✨ AI Tutor</button>
+        <button class="rpg-btn small danger" onclick="deleteActiveScroll()">🗑</button>
+      </div>
+    </div>
+
+    <!-- Exam mode bar -->
+    <div class="exam-bar" id="examBar" style="display:none">
+      <span class="exam-label">⏱ EXAM MODE</span>
+      <span class="exam-countdown" id="examCountdownDisplay">--:--</span>
+      <button class="rpg-btn small danger" onclick="stopExamMode()">✕ End</button>
+    </div>
+
+    <!-- 3-column layout -->
+    <div class="write-layout">
+
+      <!-- CENTER: Question + Word-doc page -->
+      <div class="write-center">
+
+        <!-- Pinned question -->
+        <div class="write-question-bar" id="writeQuestionBar">
+          <div class="write-question-inner" onclick="showAddQuestion()">
+            <span class="write-question-label">❓</span>
+            <span class="write-question-prompt" id="writeQuestionText">Click to set your question or prompt…</span>
+          </div>
+          <button class="write-question-edit" onclick="showAddQuestion()">✏️</button>
+        </div>
+
+        <!-- Word-doc style page — takes all remaining space -->
+        <div class="word-doc-wrap">
+          <div class="word-doc-page">
+            <textarea class="word-doc-textarea" id="writeTextarea"
+              placeholder="Start writing your answer here…"
+              oninput="onWriteInput()"
+              onfocus="startWriteTimer()"></textarea>
+            <!-- Rendered preview (shown instead of textarea when Preview is active) -->
+            <div class="word-doc-rendered" id="writePreview" style="display:none"></div>
+          </div>
+
+          <!-- Page navigation BELOW the A4 page -->
+          <div class="page-foot">
+            <button class="page-foot-btn" onclick="goPrevPage()">◀ Previous</button>
+            <span class="page-foot-num" id="pageFootNum">New Page</span>
+            <button class="page-foot-btn preview-btn" id="previewToggleBtn"
+              onclick="togglePagePreview()" title="Preview with rendered math">👁 Preview</button>
+            <button class="page-foot-btn" onclick="goNextPage()">Next ▶</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: Island + stats -->
+      <div class="write-right-panel">
+        <canvas class="island-canvas" id="islandCanvas" width="200" height="210"></canvas>
+        <div class="practice-stats-grid">
+          <div class="practice-stat-box">
+            <div class="pstat-label">✍️ Streak</div>
+            <div class="pstat-value" id="wStreakRight">0</div>
+          </div>
+          <div class="practice-stat-box">
+            <div class="pstat-label">📝 Answers</div>
+            <div class="pstat-value" id="wAnswersRight">0</div>
+          </div>
+          <div class="practice-stat-box">
+            <div class="pstat-label">⚡ Live WPM</div>
+            <div class="pstat-value" id="wBestRight">0</div>
+          </div>
+          <div class="practice-stat-box">
+            <div class="pstat-label">📅 Today</div>
+            <div class="pstat-value" id="wTodayRight">0</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end write-layout -->
+
+    <!-- Floating table button -->
+    <div class="float-table-btn" id="floatTableBtn"
+      onmousedown="startDragTable(event)"
+      ontouchstart="startDragTable(event)"
+      onclick="toggleTablePanel()">⊞</div>
+
+    <!-- Table panel (user resizable) -->
+    <div class="table-panel" id="tablePanel" style="display:none">
+      <div class="table-panel-header" onmousedown="startDragPanel(event)">
+        <span>📊 Table Editor</span>
+        <div style="display:flex;gap:6px">
+          <button onclick="maximiseTablePanel()" title="Maximise">⛶</button>
+          <button onclick="toggleTablePanel()">✕</button>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="table-toolbar">
+        <button class="tbar-btn" onclick="_addTableRow()" title="Add row">+Row</button>
+        <button class="tbar-btn" onclick="_addTableCol()" title="Add column">+Col</button>
+        <button class="tbar-btn danger" onclick="_removeTableRow(tableGridData&&tableGridData.rows.length-1)" title="Remove last row">−Row</button>
+        <button class="tbar-btn danger" onclick="_removeTableCol(tableGridData&&tableGridData.headers.length-1)" title="Remove last column">−Col</button>
+        <button class="tbar-btn" id="tableTotalsBtn" onclick="_toggleTableTotals()" title="Toggle totals row">Σ</button>
+        <button class="tbar-btn" onclick="_copyTableCSV()" title="Copy as CSV">CSV</button>
+        <button class="tbar-btn" onclick="_initEmptyGrid()" title="New empty grid">New</button>
+        <div class="tbar-divider"></div>
+        <button class="tbar-btn tbar-ai" onclick="aiFormatTable()" title="AI formats your pasted data into a table">✨ Format</button>
+        <button class="tbar-btn tbar-ai" onclick="aiDescribeTable()" title="Describe a table and AI generates it">✨ Generate</button>
+      </div>
+
+      <!-- AI table status bar -->
+      <div class="table-ai-status" id="tableAIStatus" style="display:none">
+        <span id="tableAIStatusText"></span>
+      </div>
+
+      <!-- Paste zone -->
+      <div class="table-paste-zone">
+        <div class="table-paste-label">Paste Excel / CSV / Markdown to load:</div>
+        <textarea class="table-panel-input" id="tablePanelInput"
+          placeholder="Paste here then press Enter or click outside…"
+          onpaste="setTimeout(livePreviewTable,60)"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();livePreviewTable();}"></textarea>
+      </div>
+
+      <!-- Editable grid -->
+      <div class="table-grid-area" id="tableGridContainer"></div>
+
+      <!-- Actions -->
+      <div class="table-panel-actions">
+        <button class="rpg-btn small" onclick="insertTableIntoAnswer('md')">⬇ Table</button>
+        <button class="rpg-btn small" onclick="insertTableIntoAnswer('text')">📝 Text</button>
+        <button class="rpg-btn small" onclick="clearTablePanel()">✕ Clear</button>
+      </div>
+    </div>
+
+    <!-- Saved entries hidden — pages navigated via Prev/Next -->
+    <div class="saved-entries-section" id="savedEntriesSection" style="display:none !important">
+      <div class="saved-entries-header">
+        <span class="saved-entries-title">📋 Saved Entries (<span id="savedCount">0</span>)</span>
+        <input class="rpg-input saved-search" id="savedSearch" placeholder="Search…" oninput="renderSavedEntries()">
+      </div>
+      <div id="savedEntriesList" class="saved-entries-list"></div>
+    </div>
+
+    <!-- AI Tutor Panel -->
+    <div class="ai-panel" id="aiPanel" style="display:none">
+      <div class="ai-panel-header">
+        <span class="ai-panel-title">✨ AI Tutor</span>
+        <div class="ai-mode-tabs">
+          <button class="ai-tab active" data-mode="model" onclick="setAIMode('model')">Model Answer</button>
+          <button class="ai-tab" data-mode="scheme" onclick="setAIMode('scheme')">Mark Scheme</button>
+          <button class="ai-tab" data-mode="plan" onclick="setAIMode('plan')">Essay Plan</button>
+          <button class="ai-tab" data-mode="feedback" onclick="setAIMode('feedback')">Check My Answer</button>
+          <button class="ai-tab" data-mode="improve" onclick="setAIMode('improve')">✦ Improve</button>
+          <button class="ai-tab" onclick="runGapDetector()">Gap Detector</button>
+          <button class="ai-tab" onclick="showTopicDeepDive()">Deep Dive</button>
+          <button class="ai-tab" onclick="showStudyPlan()">Study Plan</button>
+          <button class="ai-tab" onclick="showSyllabusChecker()">Syllabus Check</button>
+          <button class="ai-tab" onclick="showAIQGen()">Generate Qs</button>
+        </div>
+        <button class="ai-panel-close" onclick="toggleAIPanel()">✕</button>
+      </div>
+      <div class="ai-panel-body">
+        <div class="ai-context-row">
+          <span class="ai-context-label" id="aiContextLabel">Question: <em id="aiQuestionPreview">—</em></span>
+        </div>
+        <div class="ai-response-area" id="aiResponseArea">
+          <div class="ai-placeholder">Click <strong>Generate</strong> to get an AI response based on your question.</div>
+        </div>
+        <div class="ai-panel-actions">
+          <button class="rpg-btn primary" onclick="runAIFeature()" id="aiGenerateBtn">✨ Generate</button>
+          <button class="rpg-btn small" onclick="copyAIResponse()" id="aiCopyBtn" style="display:none">📋 Copy</button>
+          <button class="rpg-btn small" onclick="insertAIResponse()" id="aiInsertBtn" style="display:none">⬇ Insert to Page</button>
+          <button class="rpg-btn small danger" onclick="clearAIResponse()" id="aiClearBtn" style="display:none">✕</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end scrollWriteView -->
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- VIEW 3: MCT Quiz                               -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div id="mctQuizView" style="display:none;flex-direction:column;height:100vh">
+
+    <!-- Topbar -->
+    <div class="write-topbar">
+      <button class="write-back-btn" onclick="exitMCTQuiz()">← Practice</button>
+      <div class="write-scroll-name" id="mctQuizTitle">MCT Quiz</div>
+      <button class="rpg-btn small" onclick="showCalculator()" title="Calculator">🔢 Calc</button>
+      <button class="rpg-btn small" onclick="showMCTBuilder()" style="margin-left:auto">🔄 New Quiz</button>
+    </div>
+
+    <!-- 2-col layout -->
+    <div class="write-layout">
+
+      <!-- CENTER: A4 box -->
+      <div class="write-center">
+        <div class="word-doc-wrap">
+          <div class="word-doc-page mct-a4-page">
+
+            <!-- Progress bar -->
+            <div class="mct-progress-bar">
+              <span id="mctProgressText">Question 1 of 10</span>
+              <span class="mct-score-chip" id="mctScoreText">Score: 0</span>
+            </div>
+
+            <!-- Question -->
+            <div class="mct-question-box">
+              <div class="mct-question-text" id="mctQuestionText">Loading…</div>
+            </div>
+
+            <!-- Options -->
+            <div class="mct-options" id="mctOptions"></div>
+
+            <!-- Feedback -->
+            <div class="mct-feedback" id="mctFeedback" style="display:none"></div>
+
+            <!-- Nav -->
+            <div class="mct-nav">
+              <button class="rpg-btn primary" id="mctNextBtn" style="display:none" onclick="nextMCTQuestion()">Next ▶</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Island + Flame + Stats -->
+      <div class="write-right-panel">
+        <canvas class="island-canvas" id="mctIslandCanvas" width="200" height="210"></canvas>
+
+        <!-- Consecutive-correct flame -->
+        <div class="flame-container" style="text-align:center;width:100%">
+          <div class="flame-wrap">
+            <canvas id="mctFlameCanvas" class="flame-canvas" width="90" height="120"></canvas>
+            <div class="flame-counter" id="mctFlameCounter">0</div>
+          </div>
+          <div class="flame-label">Streak</div>
+        </div>
+
+        <!-- Stats grid -->
+        <div class="practice-stats-grid" style="width:100%">
+          <div class="practice-stat-box">
+            <div class="pstat-label">✅ Correct</div>
+            <div class="pstat-value" id="mctCorrectStat">0</div>
+          </div>
+          <div class="practice-stat-box">
+            <div class="pstat-label">❌ Wrong</div>
+            <div class="pstat-value" id="mctWrongStat">0</div>
+          </div>
+          <div class="practice-stat-box" style="grid-column:span 2">
+            <div class="pstat-label">🏆 Total Score</div>
+            <div class="pstat-value" id="mctTotalStat">0 / 0</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end write-layout -->
+  </div>
+
+  <!-- New Scroll Modal -->
+  <div class="modal-overlay" id="newScrollModal" style="display:none" onclick="hideNewScrollModal()">
+    <div class="rpg-modal" onclick="event.stopPropagation()">
+      <div class="modal-title">📜 New Practice Book</div>
+      <input class="rpg-input" id="newScrollName" placeholder="Book name (e.g. Accounting, Law)…" maxlength="40" style="margin-bottom:14px">
+      <div class="practice-label" style="margin-bottom:10px;color:#c9a84c;font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:1px;text-transform:uppercase">Choose colour</div>
+      <div class="book-colour-picker" id="scrollColourPicker"></div>
+      <div class="modal-actions">
+        <button class="rpg-btn primary" onclick="createScroll()">✨ Create Book</button>
+        <button class="rpg-btn" onclick="hideNewScrollModal()">✖ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Set Question Modal -->
+  <div class="modal-overlay" id="addQuestionModal" style="display:none" onclick="hideAddQuestion()">
+    <div class="rpg-modal" onclick="event.stopPropagation()">
+      <div class="modal-title">❓ Question / Prompt</div>
+      <textarea class="rpg-input" id="questionInput"
+        placeholder="Type your question, prompt, or calculation…"
+        rows="5" style="resize:vertical;margin-bottom:0;color:#e8dfc0;background:rgba(0,0,0,0.4)"></textarea>
+      <div class="modal-actions">
+        <button class="rpg-btn primary" onclick="setQuestion()">✅ Set Question</button>
+        <button class="rpg-btn" onclick="hideAddQuestion()">✖ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MCT Builder Modal -->
+  <div class="modal-overlay" id="mctBuilderModal" style="display:none" onclick="if(event.target===this)hideMCTBuilder()">
+    <div class="rpg-modal" onclick="event.stopPropagation()" style="max-width:580px">
+      <div class="modal-title">🔠 MCT Quiz Builder</div>
+      <p class="rpg-hint" style="margin-bottom:14px">Generate a multiple-choice quiz using AI. Paste study notes or choose a flashcard deck — the AI creates exam-style questions with 4 options each.</p>
+
+      <div class="mct-source-tabs">
+        <button class="mct-src-tab active" data-src="text" onclick="setMCTSource('text')">📝 Paste Notes</button>
+        <button class="mct-src-tab" data-src="deck" onclick="setMCTSource('deck')">🃏 From Deck</button>
+      </div>
+
+      <div id="mctTextSource">
+        <textarea class="rpg-input" id="mctPasteInput" rows="6"
+          placeholder="Paste your notes, textbook extract, or bullet points here…"
+          style="resize:vertical;font-family:'Crimson Text',serif"></textarea>
+      </div>
+
+      <div id="mctDeckSource" style="display:none">
+        <select class="rpg-input" id="mctDeckSelect">
+          <option value="">Choose a deck…</option>
+        </select>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:160px">
+          <label class="rpg-label">Topic name</label>
+          <input class="rpg-input" id="mctTopicInput" placeholder="e.g. Accounting Ch3, Biology…" style="margin:0">
+        </div>
+        <div>
+          <label class="rpg-label">Questions</label>
+          <input class="rpg-input small" type="number" id="mctQuestionCount" value="10" min="3" max="20" style="width:70px;margin:0">
+        </div>
+      </div>
+
+      <div id="mctBuildStatus" style="min-height:22px;margin-top:10px;font-family:'Crimson Text',serif;font-size:0.95rem;color:var(--gold)"></div>
+
+      <div class="modal-actions" style="margin-top:14px">
+        <button class="rpg-btn primary" id="mctGenerateBtn" onclick="runMCTGenerate()">🤖 Generate Quiz</button>
+        <button class="rpg-btn" onclick="hideMCTBuilder()">✖ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievement Toast -->
+  <div class="achievement-toast" id="achievementToast" style="display:none">
+    <div class="toast-icon" id="toastIcon"></div>
+    <div class="toast-text">
+      <div class="toast-title" id="toastTitle"></div>
+      <div class="toast-desc" id="toastDesc"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    initApp();
+    loadPracticePage();
+    spawnParticles();
+  </script>
+</body>
+</html>

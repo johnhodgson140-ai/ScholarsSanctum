@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholar's Sanctum — Realm</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#c9a84c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sanctum">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+</head>
+<body class="folder-page">
+
+  <div class="bg-layer fog-layer"></div>
+  <div class="bg-layer particle-layer" id="particles"></div>
+  <div class="bg-layer vignette-layer"></div>
+
+  <header class="rpg-header">
+    <div class="header-ornament left">⚜</div>
+    <div class="header-center">
+      <div class="breadcrumb" id="breadcrumb"></div>
+      <h1 class="site-title" id="folderTitle">Realm</h1>
+    </div>
+    <div class="header-ornament right">⚜</div>
+    <nav class="top-nav">
+      <a href="index.html" class="nav-link">🗺 World Map</a>
+      <a href="stats.html" class="nav-link">⚔ Character</a>
+      <a href="duel.html" class="nav-link">🤺 Duel</a>
+    <a href="practice.html" class="nav-link">✍️ Practice</a>
+          <a href="calendar.html" class="nav-link">📅 Chronicle</a>
+    </nav>
+  </header>
+
+  <main class="folder-content">
+
+    <!-- Sub-folder portals -->
+    <section id="subFolderSection">
+      <div class="section-label" id="subFolderLabel" style="display:none">⚡ Sub Realms</div>
+      <div class="map-grid sub-grid" id="subPortalGrid"></div>
+    </section>
+
+    <!-- Decks in this folder -->
+    <section id="deckSection">
+      <div class="section-label" id="deckLabel" style="display:none">📖 Tomes of Knowledge</div>
+      <div class="deck-grid" id="deckGrid"></div>
+    </section>
+
+    <div class="empty-map" id="emptyFolder" style="display:none">
+      <p class="empty-text">✨ This realm is empty. Add a deck or sub-realm below.</p>
+    </div>
+
+  </main>
+
+  <!-- Action Buttons -->
+  <div class="create-portal-area folder-actions">
+    <button class="create-portal-btn" onclick="showCreateSubFolder()">🌀 New Sub-Realm</button>
+    <button class="create-portal-btn" id="pasteRealmBtn" onclick="pasteRealmHere()" style="display:none">📥 Paste Realm</button>
+    <button class="create-portal-btn gold" onclick="showCreateDeck()">📖 Add Tome (Deck)</button>
+    <button class="create-portal-btn gold" id="pasteDeckBtn2" onclick="pasteDeck()" style="display:none">📥 Paste Tome</button>
+    <button class="create-portal-btn danger" onclick="confirmDeleteFolder()">🗑 Delete Realm</button>
+  </div>
+
+  <!-- Create Sub Folder Modal -->
+  <div class="modal-overlay" id="createSubModal" style="display:none">
+    <div class="rpg-modal">
+      <div class="modal-title">⚡ Summon Sub-Realm</div>
+      <input class="rpg-input" id="newSubFolderName" placeholder="Name this sub-realm..." maxlength="30">
+      <div class="modal-actions">
+        <button class="rpg-btn primary" onclick="createSubFolder()">✨ Summon</button>
+        <button class="rpg-btn" onclick="hideCreateSubFolder()">✖ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Deck Modal -->
+  <div class="modal-overlay" id="createDeckModal" style="display:none">
+    <div class="rpg-modal">
+      <div class="modal-title">📖 Forge New Tome</div>
+      <input class="rpg-input" id="newDeckName" placeholder="Name this tome..." maxlength="40">
+      <div class="modal-actions">
+        <button class="rpg-btn primary" onclick="createDeckInFolder()">⚔ Forge</button>
+        <button class="rpg-btn" onclick="hideCreateDeck()">✖ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Portal (Realm) Menu Modal -->
+  <div class="modal-overlay" id="portalMenuModal" style="display:none" onclick="hidePortalMenu()">
+    <div class="rpg-modal" onclick="event.stopPropagation()">
+      <div class="modal-title">🌀 <span id="portalMenuName"></span></div>
+      <div class="modal-actions" style="flex-direction:column;gap:8px">
+        <button class="rpg-btn" onclick="copyFolder(activePortalMenu)">📋 Copy Realm</button>
+        <button class="rpg-btn" id="portalMenuPaste" onclick="executePasteFolder()" style="display:none">📥 Paste Realm Copy Here</button>
+        <button class="rpg-btn" onclick="hidePortalMenu()">✖ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deck Action Menu Modal -->
+  <div class="modal-overlay" id="deckMenuModal" style="display:none" onclick="hideDeckMenu()">
+    <div class="rpg-modal" onclick="event.stopPropagation()">
+      <div class="modal-title">📖 <span id="deckMenuName"></span></div>
+      <div class="modal-actions" style="flex-direction:column;gap:8px">
+        <button class="rpg-btn" onclick="executeCopyActive()">📋 Copy Deck</button>
+        <button class="rpg-btn" id="deckMenuPaste" onclick="pasteDeck()" style="display:none">📥 Paste Copy Here</button>
+        <div>
+          <select class="rpg-input move-folder-select" id="moveFolderSelect"></select>
+          <button class="rpg-btn primary" onclick="executeMoveActive()" style="margin-top:6px;width:100%">🚀 Move to Realm</button>
+        </div>
+        <button class="rpg-btn" onclick="hideDeckMenu()">✖ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievement Toast -->
+  <div class="achievement-toast" id="achievementToast" style="display:none">
+    <div class="toast-icon" id="toastIcon"></div>
+    <div class="toast-text">
+      <div class="toast-title" id="toastTitle"></div>
+      <div class="toast-desc" id="toastDesc"></div>
+    </div>
+  </div>
+
+  <!-- Arcane corner decorations -->
+  <div class="arcane-corner tl">✦</div>
+  <div class="arcane-corner tr">✦</div>
+  <div class="arcane-corner bl">◊</div>
+  <div class="arcane-corner br">◊</div>
+
+  <script src="app.js"></script>
+  <script>
+    initApp();
+    loadFolderPage();
+    spawnParticles();
+  </script>
+</body>
+</html>

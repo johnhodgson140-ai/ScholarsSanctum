@@ -1,0 +1,198 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholar's Sanctum — Tome of Settings</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#c9a84c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sanctum">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+</head>
+<body class="settings-page">
+
+  <div class="bg-layer fog-layer"></div>
+  <div class="bg-layer particle-layer" id="particles"></div>
+  <div class="bg-layer vignette-layer"></div>
+
+  <header class="rpg-header">
+    <div class="header-ornament left">⚜</div>
+    <div class="header-center">
+      <h1 class="site-title">Tome of Settings</h1>
+    </div>
+    <div class="header-ornament right">⚜</div>
+    <nav class="top-nav">
+      <a href="index.html" class="nav-link">🗺 World Map</a>
+      <a href="stats.html" class="nav-link">⚔ Character</a>
+      <a href="duel.html" class="nav-link">🤺 Duel</a>
+    <a href="practice.html" class="nav-link">✍️ Practice</a>
+          <a href="calendar.html" class="nav-link">📅 Chronicle</a>
+    </nav>
+  </header>
+
+  <main class="page-content">
+
+    <!-- Open on another device via QR code -->
+    <div class="rpg-panel" style="text-align:center;padding:18px">
+      <div class="panel-title">📷 Open on Another Device</div>
+      <p class="rpg-hint" style="margin-bottom:14px">Scan this QR code with any phone or tablet camera to open Scholar's Sanctum instantly — no typing needed.</p>
+      <button class="rpg-btn primary" onclick="showQRCode()" style="font-size:1rem;padding:12px 28px;width:100%">📷 Show QR Code</button>
+    </div>
+
+    <!-- Mobile / Desktop mode switcher -->
+    <div class="rpg-panel" style="text-align:center;padding:18px">
+      <div class="panel-title">📱 Display Mode</div>
+      <p class="rpg-hint" style="margin-bottom:14px">Switch between full desktop layout and a mobile-optimised view. Your choice is saved and applied on every page.</p>
+      <button class="rpg-btn primary" id="mobileModeBtn" onclick="toggleMobileMode()" style="font-size:1rem;padding:12px 28px;width:100%">📱 Switch to Mobile</button>
+    </div>
+
+    <!-- Theme -->
+    <div class="rpg-panel">
+      <div class="panel-title">🎨 Visual Theme</div>
+      <select class="rpg-input" id="themeSelect" onchange="changeTheme()">
+        <option value="dark">Dark Fantasy (Default)</option>
+        <option value="focus">Focus Mode (Minimal)</option>
+        <option value="light">Parchment Light</option>
+      </select>
+    </div>
+
+    <!-- Sound -->
+    <div class="rpg-panel">
+      <div class="panel-title">🔊 Sound Effects</div>
+      <label class="toggle-label">
+        <input type="checkbox" id="soundToggle" onchange="saveSoundSetting()">
+        <span class="toggle-track"></span>
+        Enable Sound on Green Answer
+      </label>
+    </div>
+
+    <!-- Speed Mode -->
+    <div class="rpg-panel">
+      <div class="panel-title">⚡ Speed Mode</div>
+      <label class="toggle-label">
+        <input type="checkbox" id="speedToggle" onchange="saveSpeedSetting()">
+        <span class="toggle-track"></span>
+        Enable Speed Mode (timer per card)
+      </label>
+    </div>
+
+    <!-- Daily Goal -->
+    <div class="rpg-panel">
+      <div class="panel-title">🎯 Daily Goal</div>
+      <label class="rpg-label">Cards per day target:</label>
+      <input class="rpg-input small" type="number" id="dailyGoalInput" min="1" max="500" value="20">
+      <button class="rpg-btn primary" onclick="saveDailyGoal()">Save Goal</button>
+    </div>
+
+    <!-- Prestige Settings -->
+    <div class="rpg-panel">
+      <div class="panel-title">👑 Prestige Mode</div>
+      <label class="toggle-label">
+        <input type="checkbox" id="softPrestigeToggle" onchange="saveSoftPrestige()">
+        <span class="toggle-track"></span>
+        Soft Prestige (level continues past 100, no reset)
+      </label>
+      <p class="rpg-hint">Hard prestige resets level to 1 but unlocks exclusive cosmetics.</p>
+      <div id="prestigeBtn" style="margin-top:12px"></div>
+    </div>
+
+    <!-- Global RAG Defaults -->
+    <div class="rpg-panel">
+      <div class="panel-title">💎 Default RAG Intervals</div>
+      <label class="rpg-label">🔴 Red (cards before repeat)</label>
+      <input class="rpg-input small" type="number" id="defaultRagRed" min="1">
+      <label class="rpg-label">🟡 Amber</label>
+      <input class="rpg-input small" type="number" id="defaultRagAmber" min="1">
+      <label class="rpg-label">🟢 Green</label>
+      <input class="rpg-input small" type="number" id="defaultRagGreen" min="1">
+      <button class="rpg-btn primary" onclick="saveDefaultRag()">Save Defaults</button>
+      <button class="rpg-btn" onclick="applyRagToAll()">Apply to All Decks</button>
+    </div>
+
+    <!-- AI Tutor -->
+    <div class="rpg-panel">
+      <div class="panel-title">🤖 AI Tutor</div>
+      <p class="rpg-hint" style="margin-bottom:14px">Add your Claude API key to unlock model answers, mark schemes, essay plans, answer feedback, and auto-generated flashcards. Your key is stored locally on this device only and sent exclusively to Anthropic.</p>
+
+      <label class="rpg-label">Anthropic API Key</label>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+        <input class="rpg-input" type="password" id="claudeKeyInput"
+          placeholder="sk-ant-api03-…" style="flex:1;margin:0;font-family:monospace;font-size:0.85rem">
+        <button class="rpg-btn small" onclick="toggleAIKeyVisibility()" title="Show/hide key">👁</button>
+      </div>
+
+      <label class="rpg-label">Model</label>
+      <select class="rpg-input" id="claudeModelSelect" style="margin-bottom:14px">
+        <option value="claude-haiku-4-5-20251001">Haiku 4.5 — Fastest &amp; cheapest (~$0.001/answer)</option>
+        <option value="claude-sonnet-4-6" selected>Sonnet 4.6 — Balanced · Recommended</option>
+        <option value="claude-opus-4-7">Opus 4.7 — Most capable</option>
+      </select>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="rpg-btn primary" onclick="saveAIKey()">💾 Save Key</button>
+        <button class="rpg-btn" onclick="testAIKey()">🧪 Test Connection</button>
+      </div>
+      <div id="aiKeyStatus" style="margin-top:10px;font-family:'Crimson Text',serif;font-size:0.95rem"></div>
+      <p class="rpg-hint" style="margin-top:12px">Get your key at <strong>console.anthropic.com</strong> → API Keys. Haiku costs ~$0.001 per answer — effectively free for personal use.</p>
+    </div>
+
+    <!-- Account -->
+    <div class="rpg-panel">
+      <div class="panel-title">👤 Account</div>
+      <div class="sync-status connected" id="syncStatus">🟢 Auto-syncing</div>
+      <div class="account-info">
+        <div class="account-name" id="accountName"></div>
+        <div class="account-email" id="accountEmail"></div>
+      </div>
+      <div class="sync-btn-row" style="margin-top:14px">
+        <button class="rpg-btn primary" onclick="pushSync()">⬆ Push to Cloud</button>
+        <button class="rpg-btn" onclick="pullSync()">⬇ Pull from Cloud</button>
+      </div>
+      <div id="syncLastTime" class="rpg-hint" style="margin-top:8px"></div>
+      <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+        <button class="rpg-btn" onclick="switchUser()">🔄 Switch User</button>
+        <button class="rpg-btn danger" onclick="removeFromDevice()">🔒 Remove Account from Device</button>
+      </div>
+    </div>
+
+    <!-- Export / Import -->
+    <div class="rpg-panel">
+      <div class="panel-title">📦 Export Scrolls</div>
+      <button class="rpg-btn primary" onclick="exportDecks()">⬇ Download Export File</button>
+      <p class="rpg-hint">Use this file to sync your data to another device.</p>
+    </div>
+
+    <div class="rpg-panel">
+      <div class="panel-title">📜 Import Scrolls</div>
+      <input type="file" class="rpg-input" id="importFile" accept=".json">
+      <button class="rpg-btn" onclick="importDecks()">⬆ Import</button>
+    </div>
+
+    <!-- Reset -->
+    <div class="rpg-panel danger-panel">
+      <div class="panel-title">💀 Destroy Everything</div>
+      <button class="rpg-btn danger" onclick="resetAllData()">DELETE ALL DATA</button>
+      <p class="rpg-hint">Warning: This cannot be undone. All decks, progress, and XP will be lost.</p>
+    </div>
+
+  </main>
+
+  <!-- Arcane corner decorations -->
+  <div class="arcane-corner tl">✦</div>
+  <div class="arcane-corner tr">✦</div>
+  <div class="arcane-corner bl">◊</div>
+  <div class="arcane-corner br">◊</div>
+
+  <script src="app.js"></script>
+  <script>
+    initApp();
+    loadSettingsPage();
+    spawnParticles();
+  </script>
+</body>
+</html>

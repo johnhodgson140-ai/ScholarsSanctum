@@ -1,0 +1,217 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholar's Sanctum — Character</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#c9a84c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sanctum">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script></head>
+<body class="stats-page">
+
+  <div class="bg-layer fog-layer"></div>
+  <div class="bg-layer particle-layer" id="particles"></div>
+  <div class="bg-layer vignette-layer"></div>
+
+  <header class="rpg-header">
+    <div class="header-ornament left">⚜</div>
+    <div class="header-center">
+      <h1 class="site-title">Character Sheet</h1>
+    </div>
+    <div class="header-ornament right">⚜</div>
+    <nav class="top-nav">
+      <a href="index.html" class="nav-link">🗺 World Map</a>
+      <a href="duel.html" class="nav-link">🤺 Duel</a>
+      <a href="settings.html" class="nav-link">⚙ Tome</a>
+    <a href="practice.html" class="nav-link">✍️ Practice</a>
+          <a href="calendar.html" class="nav-link">📅 Chronicle</a>
+    </nav>
+  </header>
+
+  <main class="page-content stats-content">
+
+    <!-- Calendar upcoming events widget -->
+    <div class="calendar-widget" id="statsCalendarWidget" style="display:none;margin-bottom:8px"></div>
+
+    <!-- Character Identity -->
+    <div class="rpg-panel identity-panel">
+      <div class="prestige-badge" id="prestigeBadge"></div>
+      <div class="char-title" id="charTitle">Apprentice Scholar</div>
+      <div class="char-level" id="charLevel">Level 1</div>
+      <div class="char-prestige" id="charPrestige"></div>
+    </div>
+
+    <!-- XP Bar -->
+    <div class="rpg-panel">
+      <div class="panel-title">⚡ Experience</div>
+      <div class="xp-bar-frame stats-xp">
+        <div class="xp-level-label" id="statsXpLevel">Level 1</div>
+        <div class="xp-track">
+          <div class="xp-fill" id="statsXpFill"></div>
+          <div class="xp-shimmer"></div>
+        </div>
+        <div class="xp-count-label" id="statsXpCount">0 / 10 XP</div>
+      </div>
+      <div class="stat-row">
+        <span>Total Lifetime XP</span><span id="lifetimeXP">0</span>
+      </div>
+    </div>
+
+    <!-- Study Stats -->
+    <div class="rpg-panel">
+      <div class="panel-title">📊 Battle Statistics</div>
+      <div class="stat-row"><span>Daily Streak</span><span id="statStreak">0 days</span></div>
+      <div class="stat-row"><span>Personal Best Streak</span><span id="statBestStreak">0</span></div>
+      <div class="stat-row"><span>Cards Studied Today</span><span id="statToday">0</span></div>
+      <div class="stat-row"><span>Total Cards Studied</span><span id="statTotal">0</span></div>
+      <div class="stat-row"><span>Total Study Time</span><span id="statTime">00:00</span></div>
+      <div class="stat-row"><span>Cards Due Today</span><span id="statDue">0</span></div>
+    </div>
+
+    <!-- RAG Distribution -->
+    <div class="rpg-panel">
+      <div class="panel-title">💎 Answer Quality</div>
+      <div class="rag-bar-row">
+        <span class="rag-label red-text">Red</span>
+        <div class="rag-bar-track"><div class="rag-bar-fill red-fill" id="ragBarRed"></div></div>
+        <span id="ragCountRed">0</span>
+      </div>
+      <div class="rag-bar-row">
+        <span class="rag-label amber-text">Amber</span>
+        <div class="rag-bar-track"><div class="rag-bar-fill amber-fill" id="ragBarAmber"></div></div>
+        <span id="ragCountAmber">0</span>
+      </div>
+      <div class="rag-bar-row">
+        <span class="rag-label green-text">Green</span>
+        <div class="rag-bar-track"><div class="rag-bar-fill green-fill" id="ragBarGreen"></div></div>
+        <span id="ragCountGreen">0</span>
+      </div>
+    </div>
+
+    <!-- Weekly Report -->
+    <div class="rpg-panel">
+      <div class="panel-title">📊 Weekly Report</div>
+      <div id="weeklyReport"></div>
+    </div>
+
+    <!-- Retention Rate -->
+    <div class="rpg-panel">
+      <div class="panel-title">🎯 Retention Rate per Deck</div>
+      <p class="rpg-hint" style="margin-bottom:10px">% of answers marked green out of all answers for each deck.</p>
+      <div id="retentionList"></div>
+    </div>
+
+    <!-- Forgetting Curve -->
+    <div class="rpg-panel">
+      <div class="panel-title">📉 Forgetting Curve</div>
+      <p class="rpg-hint" style="margin-bottom:8px">Estimated retention over 30 days based on ease factor.</p>
+      <canvas id="forgettingCurveCanvas" width="520" height="120" style="width:100%;border-radius:6px"></canvas>
+    </div>
+
+    <!-- Session History -->
+    <div class="rpg-panel">
+      <div class="panel-title">📋 Session History</div>
+      <div id="sessionHistoryList"></div>
+    </div>
+
+    <!-- Study Planner -->
+    <div class="rpg-panel">
+      <div class="panel-title">🗓️ 14-Day Study Planner</div>
+      <div class="planner-grid" id="studyPlannerGrid"></div>
+    </div>
+
+    <!-- Exam Readiness -->
+    <div class="rpg-panel">
+      <div class="panel-title">🎓 Exam Readiness</div>
+      <p class="rpg-hint" style="margin-bottom:10px">Based on mastery, ease factor and how recently cards were reviewed.</p>
+      <div id="readinessList"></div>
+    </div>
+
+    <!-- Daily Reminder -->
+    <div class="rpg-panel">
+      <div class="panel-title">🔔 Daily Reminder</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <label class="rpg-label" style="margin:0">Remind me at:</label>
+        <input type="time" class="rpg-input" id="reminderTimeInput" style="width:130px">
+        <button class="rpg-btn primary" onclick="requestNotificationPermission();saveReminderTime()">💾 Save Reminder</button>
+      </div>
+    </div>
+
+    <!-- Calendar Heatmap -->
+    <div class="rpg-panel">
+      <div class="panel-title">📅 Study Chronicle</div>
+      <div class="heatmap-grid" id="heatmapGrid"></div>
+      <div class="heatmap-legend">
+        <span>Less</span>
+        <div class="heat-swatch h0"></div>
+        <div class="heat-swatch h1"></div>
+        <div class="heat-swatch h2"></div>
+        <div class="heat-swatch h3"></div>
+        <div class="heat-swatch h4"></div>
+        <span>More</span>
+      </div>
+    </div>
+
+    <!-- Deck Mastery -->
+    <div class="rpg-panel">
+      <div class="panel-title">📖 Tome Mastery</div>
+      <div id="deckMasteryList"></div>
+    </div>
+
+    <!-- Prestige Hall of Fame -->
+    <div class="rpg-panel">
+      <div class="panel-title">👑 Hall of Legends</div>
+      <div class="stat-row"><span>Current Prestige</span><span id="hallPrestige">None</span></div>
+      <div class="stat-row"><span>Total Prestiges</span><span id="hallTotal">0</span></div>
+      <div class="stat-row"><span>Lifetime Levels</span><span id="hallLevels">0</span></div>
+    </div>
+
+    <!-- Due Forecast -->
+    <div class="rpg-panel">
+      <div class="panel-title">📅 14-Day Forecast</div>
+      <canvas id="forecastCanvas" width="560" height="120" style="width:100%;border-radius:6px"></canvas>
+      <p class="rpg-hint" style="margin-top:6px">Red = due today · Gold = future days</p>
+    </div>
+
+    <!-- Streak Freeze -->
+    <div class="rpg-panel">
+      <div class="panel-title">🧊 Streak Freeze</div>
+      <div class="stat-row">
+        <span>Freezes available</span>
+        <span id="streakFreezeCount">0</span>
+      </div>
+      <p class="rpg-hint">A freeze protects your streak if you miss a day.</p>
+      <button class="rpg-btn primary" onclick="buyStreakFreeze()" style="margin-top:8px">🧊 Buy Freeze (50 XP)</button>
+    </div>
+
+    <!-- Achievements -->
+    <div class="rpg-panel">
+      <div class="panel-title">🏆 Achievements</div>
+      <div class="achievements-grid" id="achievementsGrid"></div>
+    </div>
+
+  </main>
+
+  <!-- Arcane corner decorations -->
+  <div class="arcane-corner tl">✦</div>
+  <div class="arcane-corner tr">✦</div>
+  <div class="arcane-corner bl">◊</div>
+  <div class="arcane-corner br">◊</div>
+
+  <script src="app.js"></script>
+  <script>
+    initApp();
+    loadStatsPage();
+    spawnParticles();
+  </script>
+</body>
+</html>

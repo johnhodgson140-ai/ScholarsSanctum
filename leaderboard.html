@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholar's Sanctum — Hall of Legends</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#c9a84c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+</head>
+<body class="leaderboard-page">
+
+  <div class="bg-layer fog-layer"></div>
+  <div class="bg-layer particle-layer" id="particles"></div>
+  <div class="bg-layer vignette-layer"></div>
+
+  <header class="rpg-header">
+    <div class="header-ornament left">⚜</div>
+    <div class="header-center">
+      <h1 class="site-title">Hall of Legends</h1>
+    </div>
+    <div class="header-ornament right">⚜</div>
+    <nav class="top-nav">
+      <a href="index.html" class="nav-link">🗺 World Map</a>
+      <a href="stats.html" class="nav-link">⚔ Character</a>
+      <a href="settings.html" class="nav-link">⚙ Tome</a>
+    <a href="practice.html" class="nav-link">✍️ Practice</a>
+          <a href="calendar.html" class="nav-link">📅 Chronicle</a>
+    </nav>
+  </header>
+
+  <main class="page-content lb-content">
+    <div class="lb-refresh-row">
+      <button class="rpg-btn small" onclick="loadLeaderboardPage()">↺ Refresh</button>
+      <button class="rpg-btn small" id="notifBtn" onclick="requestNotificationPermission()">🔔 Enable Notifications</button>
+    </div>
+    <div id="leaderboardGrid"></div>
+  </main>
+
+  <div class="arcane-corner tl">✦</div>
+  <div class="arcane-corner tr">✦</div>
+  <div class="arcane-corner bl">◊</div>
+  <div class="arcane-corner br">◊</div>
+
+  <script src="app.js"></script>
+  <script>
+    initApp();
+    loadLeaderboardPage();
+    spawnParticles();
+  </script>
+</body>
+</html>

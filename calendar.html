@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholar's Sanctum — Calendar</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#c9a84c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sanctum">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script></head>
+<body class="calendar-page">
+
+  <div class="bg-layer fog-layer"></div>
+  <div class="bg-layer particle-layer" id="particles"></div>
+  <div class="bg-layer vignette-layer"></div>
+
+  <header class="rpg-header">
+    <div class="header-ornament left">⚜</div>
+    <div class="header-center">
+      <h1 class="site-title">Chronicle</h1>
+      <p class="site-subtitle">Events &amp; Deadlines</p>
+    </div>
+    <div class="header-ornament right">⚜</div>
+    <nav class="top-nav">
+      <a href="index.html" class="nav-link">🗺 World Map</a>
+      <a href="stats.html" class="nav-link">⚔ Character</a>
+      <a href="practice.html" class="nav-link">✍️ Practice</a>
+      <a href="settings.html" class="nav-link">⚙ Tome</a>
+    </nav>
+  </header>
+
+  <main class="page-content calendar-content">
+
+    <div class="calendar-layout">
+
+      <!-- LEFT: Month calendar -->
+      <div class="calendar-main">
+
+        <!-- Month navigation -->
+        <div class="cal-month-nav">
+          <button class="cal-nav-btn" onclick="calPrevMonth()">◀</button>
+          <div class="cal-month-title" id="calMonthTitle">January 2026</div>
+          <button class="cal-nav-btn" onclick="calNextMonth()">▶</button>
+          <button class="rpg-btn small" onclick="calGoToday()" style="margin-left:12px">Today</button>
+        </div>
+
+        <!-- Day-of-week headers -->
+        <div class="cal-dow-row">
+          <div class="cal-dow">Mon</div>
+          <div class="cal-dow">Tue</div>
+          <div class="cal-dow">Wed</div>
+          <div class="cal-dow">Thu</div>
+          <div class="cal-dow">Fri</div>
+          <div class="cal-dow cal-weekend">Sat</div>
+          <div class="cal-dow cal-weekend">Sun</div>
+        </div>
+
+        <!-- Calendar grid -->
+        <div class="cal-grid" id="calGrid"></div>
+
+        <!-- Legend -->
+        <div class="cal-legend">
+          <div class="cal-legend-item"><span class="cal-dot" style="background:#e74c3c"></span>Exam</div>
+          <div class="cal-legend-item"><span class="cal-dot" style="background:#e67e22"></span>Deadline</div>
+          <div class="cal-legend-item"><span class="cal-dot" style="background:#3498db"></span>Study Session</div>
+          <div class="cal-legend-item"><span class="cal-dot" style="background:#9b59b6"></span>Assignment</div>
+          <div class="cal-legend-item"><span class="cal-dot" style="background:#c9a84c"></span>Other</div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: Upcoming events + Add button -->
+      <div class="calendar-sidebar">
+
+        <button class="rpg-btn primary cal-add-btn" onclick="showAddEvent()">＋ Add Event</button>
+
+        <!-- Upcoming events list -->
+        <div class="cal-upcoming">
+          <div class="cal-upcoming-title">Upcoming Events</div>
+          <div id="calUpcomingList"></div>
+        </div>
+
+        <!-- Today's events -->
+        <div class="cal-upcoming" style="margin-top:16px">
+          <div class="cal-upcoming-title">Today</div>
+          <div id="calTodayList"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Add / Edit Event Modal -->
+  <div class="modal-overlay" id="addEventModal" style="display:none" onclick="hideAddEvent()">
+    <div class="rpg-modal" onclick="event.stopPropagation()" style="max-width:440px">
+      <div class="modal-title" id="addEventTitle">📅 Add Event</div>
+
+      <label class="rpg-label">Title</label>
+      <input class="rpg-input" id="eventTitleInput" placeholder="e.g. Accounting Exam, Essay Due…" maxlength="60">
+
+      <label class="rpg-label">Date</label>
+      <input class="rpg-input" type="date" id="eventDateInput">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label class="rpg-label">Time (optional)</label>
+          <input class="rpg-input" type="time" id="eventTimeInput">
+        </div>
+        <div>
+          <label class="rpg-label">Type</label>
+          <select class="rpg-input" id="eventTypeInput" onchange="updateEventColour()">
+            <option value="exam">📝 Exam</option>
+            <option value="deadline">⏰ Deadline</option>
+            <option value="study">📚 Study Session</option>
+            <option value="assignment">📋 Assignment</option>
+            <option value="other">🎯 Other</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="rpg-label">Notes (optional)</label>
+      <textarea class="rpg-input" id="eventNotesInput" rows="3"
+        placeholder="Any extra details…"
+        style="resize:vertical;font-family:'Crimson Text',serif"></textarea>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+        <label class="rpg-label" style="margin:0">Colour</label>
+        <input type="color" id="eventColourInput" style="width:36px;height:30px;border:none;background:none;cursor:pointer">
+      </div>
+
+      <div class="modal-actions">
+        <button class="rpg-btn primary" onclick="saveEvent()">💾 Save</button>
+        <button class="rpg-btn danger" id="deleteEventBtn" style="display:none" onclick="deleteEvent()">🗑 Delete</button>
+        <button class="rpg-btn" onclick="hideAddEvent()">✖ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day Events Modal (click a day) -->
+  <div class="modal-overlay" id="dayModal" style="display:none" onclick="hideDayModal()">
+    <div class="rpg-modal" onclick="event.stopPropagation()" style="max-width:420px">
+      <div class="modal-title" id="dayModalTitle">Events</div>
+      <div id="dayModalEvents" style="margin-bottom:14px"></div>
+      <div class="modal-actions">
+        <button class="rpg-btn primary" onclick="showAddEventOnDate(_calSelectedDate)">＋ Add Event</button>
+        <button class="rpg-btn" onclick="hideDayModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    initApp();
+    loadCalendarPage();
+    spawnParticles();
+  </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#1e1030"/>
+      <stop offset="100%" stop-color="#0a0a0f"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0d080"/>
+      <stop offset="50%" stop-color="#c9a84c"/>
+      <stop offset="100%" stop-color="#8a6a1a"/>
+    </linearGradient>
+    <linearGradient id="goldH" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8a6a1a"/>
+      <stop offset="50%" stop-color="#f0d080"/>
+      <stop offset="100%" stop-color="#8a6a1a"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softglow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+
+  <!-- Subtle inner glow -->
+  <circle cx="256" cy="220" r="170" fill="rgba(201,168,76,0.07)"/>
+
+  <!-- Gold border -->
+  <rect x="10" y="10" width="492" height="492" rx="88"
+        fill="none" stroke="url(#goldH)" stroke-width="5" opacity="0.5"/>
+
+  <!-- Corner ornaments -->
+  <text x="32" y="62"  font-size="32" font-family="serif" fill="#c9a84c" opacity="0.4">✦</text>
+  <text x="440" y="62" font-size="32" font-family="serif" fill="#c9a84c" opacity="0.4">✦</text>
+  <text x="32" y="498" font-size="32" font-family="serif" fill="#c9a84c" opacity="0.4">✦</text>
+  <text x="440" y="498" font-size="32" font-family="serif" fill="#c9a84c" opacity="0.4">✦</text>
+
+  <!-- Open book — left page -->
+  <path d="M 88 168 C 88 148 106 138 126 136 L 242 128 L 242 384 L 126 392 C 106 394 88 384 88 364 Z"
+        fill="#130b04" stroke="url(#gold)" stroke-width="3" opacity="0.95"/>
+
+  <!-- Open book — right page -->
+  <path d="M 424 168 C 424 148 406 138 386 136 L 270 128 L 270 384 L 386 392 C 406 394 424 384 424 364 Z"
+        fill="#130b04" stroke="url(#gold)" stroke-width="3" opacity="0.95"/>
+
+  <!-- Book spine -->
+  <rect x="238" y="124" width="36" height="268" rx="6" fill="url(#gold)" opacity="0.9"/>
+  <rect x="244" y="124" width="24" height="268" rx="4" fill="#5a3e0a" opacity="0.5"/>
+
+  <!-- Lines on left page -->
+  <line x1="112" y1="178" x2="224" y2="172" stroke="#c9a84c" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+  <line x1="112" y1="208" x2="224" y2="202" stroke="#c9a84c" stroke-width="3" stroke-linecap="round" opacity="0.40"/>
+  <line x1="112" y1="236" x2="224" y2="230" stroke="#c9a84c" stroke-width="3" stroke-linecap="round" opacity="0.35"/>
+  <line x1="112" y1="264" x2="224" y2="258" stroke="#c9a84c" stroke-width="3" stroke-linecap="round" opacity="0.30"/>
+  <line x1="112" y1="292" x2="224" y2="286" stroke="#c9a84c" stroke-width="3" stroke-linecap="round" opacity="0.25"/>
+  <line x1="112" y1="320" x2="196" y2="315" stroke="#c9a84c" stroke-width="3" stroke-linecap="round" opacity="0.20"/>
+
+  <!-- Lines on right page -->
+  <line x1="288" y1="172" x2="400" y2="178" stroke="#c9a84c" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+  <line x1="288" y1="202" x2="400" y2="208" stroke="#c9a84c" stroke-width="3" stroke-linecap="round" opacity="0.40"/>
+  <line x1="288" y1="230" x2="400" y2="236" stroke="#c9a84c" stroke-width="3" stroke-linecap="round" opacity="0.35"/>
+  <line x1="288" y1="258" x2="400" y2="264" stroke="#c9a84c" stroke-width="3" stroke-linecap="round" opacity="0.30"/>
+  <line x1="288" y1="286" x2="400" y2="292" stroke="#c9a84c" stroke-width="3" stroke-linecap="round" opacity="0.25"/>
+  <line x1="316" y1="315" x2="400" y2="320" stroke="#c9a84c" stroke-width="3" stroke-linecap="round" opacity="0.20"/>
+
+  <!-- Glowing rune star on left page -->
+  <text x="168" y="355" font-size="36" text-anchor="middle" fill="#c9a84c" filter="url(#glow)" opacity="0.7">✦</text>
+
+  <!-- Glowing rune star on right page -->
+  <text x="344" y="355" font-size="36" text-anchor="middle" fill="#c9a84c" filter="url(#glow)" opacity="0.7">✦</text>
+
+  <!-- "S" on spine -->
+  <text x="256" y="276" font-size="44" font-family="Georgia,'Times New Roman',serif" font-weight="bold"
+        text-anchor="middle" fill="#f0d080" filter="url(#glow)">S</text>
+
+  <!-- Bottom glow orb -->
+  <ellipse cx="256" cy="440" rx="80" ry="12" fill="#c9a84c" opacity="0.18" filter="url(#softglow)"/>
+
+  <!-- Floating sparkles -->
+  <circle cx="160" cy="108" r="4" fill="#f0d080" filter="url(#glow)" opacity="0.8"/>
+  <circle cx="352" cy="100" r="3" fill="#f0d080" filter="url(#glow)" opacity="0.7"/>
+  <circle cx="420" cy="300" r="3" fill="#aa88ff" filter="url(#glow)" opacity="0.6"/>
+  <circle cx="90"  cy="290" r="3" fill="#aa88ff" filter="url(#glow)" opacity="0.6"/>
+  <circle cx="256" cy="88"  r="5" fill="#f0d080" filter="url(#softglow)" opacity="0.9"/>
+</svg>

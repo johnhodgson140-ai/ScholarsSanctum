@@ -1,0 +1,331 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholar's Sanctum — Study</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#c9a84c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sanctum">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script></head>
+<body class="study-page">
+
+  <div class="bg-layer fog-layer"></div>
+  <div class="bg-layer particle-layer" id="particles"></div>
+  <div class="bg-layer vignette-layer"></div>
+
+  <!-- Timer Chip -->
+  <div class="timer-chip" id="timerChip" onclick="toggleTimerPanel()">
+    <span class="timer-icon">⏱</span>
+    <span id="timerDisplay">00:00</span>
+  </div>
+
+  <!-- Timer Panel -->
+  <div class="timer-panel hidden" id="timerPanel">
+    <div class="timer-panel-title">⏱ Study Timer</div>
+    <div class="timer-big" id="timerBig">00:00</div>
+    <div class="timer-controls">
+      <button class="rpg-btn small" onclick="startTimer()">▶</button>
+      <button class="rpg-btn small" onclick="stopTimer()">⏸</button>
+      <button class="rpg-btn small" onclick="resetTimer()">↺</button>
+    </div>
+    <div class="timer-panel-title" style="margin-top:12px">🍅 Pomodoro</div>
+    <div class="timer-big" id="pomodoroDisplay">25:00</div>
+    <div class="timer-controls">
+      <button class="rpg-btn small" id="pomodoroBtn" onclick="startPomodoro()">🍅 Start Pomodoro</button>
+    </div>
+    <div class="timer-panel-title" style="margin-top:12px">⏱ Stopwatch</div>
+    <div class="timer-big" id="stopwatchBig">00:00</div>
+    <div class="timer-controls">
+      <button class="rpg-btn small" onclick="startStopwatch()">▶</button>
+      <button class="rpg-btn small" onclick="stopStopwatch()">⏸</button>
+      <button class="rpg-btn small" onclick="resetStopwatch()">↺</button>
+    </div>
+  </div>
+
+  <!-- Back button -->
+  <a class="back-btn" id="backBtn" href="index.html">← Return</a>
+
+  <div class="study-main">
+
+  <!-- Deck Title -->
+  <div class="deck-study-title" id="deckStudyTitle"></div>
+
+  <!-- XP Bar -->
+  <div class="xp-bar-container">
+    <div class="xp-bar-frame">
+      <div class="xp-level-label" id="xpLevelLabel">Level 1</div>
+      <div class="xp-track">
+        <div class="xp-fill" id="xpFill"></div>
+        <div class="xp-shimmer"></div>
+      </div>
+      <div class="xp-count-label" id="xpCountLabel">0 / 10 XP</div>
+    </div>
+    <div class="xp-tooltip" id="xpTooltip">
+      <div id="xpCurrentText">Current XP: 0</div>
+      <div id="xpRemainingText">Remaining to level: 10</div>
+    </div>
+  </div>
+
+  <!-- Study Arena -->
+  <div class="study-arena">
+
+    <!-- Rank Badge (LEFT) -->
+    <div class="rank-panel">
+      <div class="rank-badge">
+        <span class="rank-icon" id="rankIcon">📜</span>
+        <div class="rank-divider"></div>
+        <div class="rank-level" id="rankLevel">Level 1</div>
+        <div class="rank-title-label" id="rankTitleLabel">Apprentice Scholar</div>
+      </div>
+    </div>
+
+    <!-- Flashcard -->
+    <div class="flashcard-wrapper">
+      <div class="flashcard" id="flashcard" onclick="flipCard(event)">
+        <div class="card-inner" id="cardInner">
+          <div class="card-face card-front" id="cardFront">
+            <div class="card-content" id="cardFrontContent">Click to begin</div>
+            <div class="card-img-wrap" id="cardFrontImg"></div>
+          </div>
+          <div class="card-face card-back" id="cardBack">
+            <div class="card-content" id="cardBackContent"></div>
+            <div class="card-img-wrap" id="cardBackImg"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card navigation -->
+      <div class="card-nav">
+        <button class="rpg-btn nav-btn" onclick="prevCard()">◀ Prev</button>
+        <button class="rpg-btn nav-btn" onclick="shuffleDeck()">🔀 Shuffle</button>
+        <button class="rpg-btn nav-btn active" id="dueFilterBtn" onclick="toggleDueFilter()">📚 All Cards</button>
+        <button class="rpg-btn nav-btn" id="cramBtn" onclick="toggleCramMode()">📖 Cram</button>
+        <button class="rpg-btn nav-btn" onclick="showCalculator()" title="Calculator">🔢</button>
+        <button class="rpg-btn nav-btn" onclick="nextCard()">Next ▶</button>
+      </div>
+      <div class="card-counter" id="cardCounter"></div>
+      <!-- Per-card stats -->
+      <div class="card-stats-panel" id="cardStatsPanel" style="display:none"></div>
+      <!-- Tag chips -->
+      <div class="tag-chips-row" id="tagChips"></div>
+    </div>
+
+    <!-- Right Side: Island + Flame -->
+    <div class="right-panel">
+      <canvas class="island-canvas" id="islandCanvas" width="200" height="210"></canvas>
+      <div class="flame-container" id="flameContainer">
+        <div class="flame-wrap">
+          <canvas class="flame-canvas" id="flameCanvas" width="90" height="120"></canvas>
+          <div class="flame-counter" id="flameCounter">0</div>
+        </div>
+        <div class="flame-label">Streak</div>
+        <div class="flame-best" id="flameBest">Best: 0</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Confidence panel (shown before flip in confidence mode) -->
+  <div class="confidence-panel" id="confidencePanel" style="display:none">
+    <div class="confidence-label">How confident are you?</div>
+    <div class="confidence-btns">
+      <button class="confidence-btn red" onclick="rateConfidence('red')">😰 Not Sure</button>
+      <button class="confidence-btn amber" onclick="rateConfidence('amber')">🤔 Maybe</button>
+      <button class="confidence-btn green" onclick="rateConfidence('green')">😊 Confident</button>
+    </div>
+  </div>
+
+  <!-- RAG Gem Buttons -->
+  <div class="rag-gems" id="ragGems">
+    <button class="gem red-gem" onclick="mark('red')" title="Difficult (1)"></button>
+    <button class="gem amber-gem" onclick="mark('amber')" title="Getting there (2)"></button>
+    <button class="gem green-gem" onclick="mark('green')" title="Mastered (3)"></button>
+    <button class="rag-tools-toggle" id="ragToolsToggle" onclick="toggleRagActions()" title="Show tools">⋯</button>
+    <button class="rpg-btn small ai-btn" onclick="startAIDuelFromDeck()" title="AI Duel this deck" style="margin-left:6px;padding:8px 14px;font-size:0.78rem">⚔ AI Duel</button>
+  </div>
+  <div class="rag-actions" id="ragActions">
+    <button class="rpg-btn small" onclick="undoLastMark()" title="Undo (U)">↩ Undo</button>
+    <button class="rpg-btn small" onclick="showSessionSummary()">📊 Summary</button>
+    <button class="rpg-btn small" onclick="showResetModal()">🔄 Reset</button>
+    <button class="rpg-btn small" onclick="toggleCardStats()">📋 Stats</button>
+    <button class="rpg-btn small" onclick="showTagFilter()">🏷️ Tags</button>
+    <button class="rpg-btn small" onclick="showCardSearch()">🔍 Search</button>
+    <button class="rpg-btn small" id="confidenceBtn" onclick="toggleConfidenceMode()">🧠 Confidence</button>
+    <button class="rpg-btn small" id="fitbBtn" onclick="toggleFitbMode()">✏️ FITB</button>
+    <button class="rpg-btn small" onclick="showDifficultPanel()">⚠️ Hard Cards</button>
+    <button class="rpg-btn small" onclick="toggleVoiceInput('editBack')" id="voiceBtn">🎙️ Voice</button>
+    <button class="rpg-btn small" onclick="printDeckFlashcards()">🖨️ Print</button>
+    <button class="rpg-btn small" id="studyRoomBtn" onclick="showStudyRoomPanel()">👥 Room</button>
+    <button class="rpg-btn small" onclick="showCalculator()">🔢 Calc</button>
+    <button class="rpg-btn small" onclick="showTAccountPad()">⚖️ T-Account</button>
+    <button class="rpg-btn small" onclick="showRatioReference()">📊 Ratios</button>
+    <button class="rpg-btn small" onclick="showCardTemplates()">📋 Template</button>
+    <button class="rpg-btn small" onclick="importAnkiText()">📥 Anki</button>
+    <button class="rpg-btn small ai-btn" onclick="showAICardGen()">✨ AI Cards</button>
+  </div>
+
+  <!-- Fill-in-the-blank input -->
+  <div class="fitb-wrap" id="fitbWrap" style="display:none">
+    <div class="fitb-prompt"></div>
+    <div class="fitb-input-row">
+      <input class="fitb-input rpg-input" id="fitbInput" placeholder="Type the missing word…" onkeydown="if(event.key==='Enter')checkFitbAnswer()">
+      <button class="rpg-btn primary" onclick="checkFitbAnswer()">Check</button>
+    </div>
+  </div>
+
+  <!-- Most difficult cards panel -->
+  <div class="difficult-panel hidden" id="difficultPanel">
+    <div class="difficult-panel-title">⚠️ Hardest Cards (tap to jump)</div>
+    <div id="difficultCardsList"></div>
+  </div>
+
+  <!-- Speed Mode Timer -->
+  <div class="speed-timer" id="speedTimer" style="display:none">
+    <span id="speedTimerDisplay">0.0s</span>
+  </div>
+
+  <!-- Motivational message -->
+  <div class="motivational" id="motivational"></div>
+
+  </div><!-- end .study-main -->
+
+  <!-- Level Up Overlay -->
+  <div class="levelup-overlay" id="levelupOverlay" style="display:none">
+    <div class="levelup-content">
+      <div class="levelup-title">⚡ LEVEL UP! ⚡</div>
+      <div class="levelup-level" id="levelupLevel"></div>
+      <div class="levelup-title-rank" id="levelupRank"></div>
+    </div>
+    <canvas id="particleCanvas" class="particle-canvas"></canvas>
+  </div>
+
+  <!-- Edit Card Panel (hidden during focus, accessible via button) -->
+  <div class="edit-toggle-btn" onclick="toggleEditPanel()">✏ Edit Card</div>
+  <div class="edit-panel hidden" id="editPanel">
+    <div class="edit-panel-title">✏ Edit This Card</div>
+    <label class="rpg-label">Front Text</label>
+    <input class="rpg-input" id="editFront" placeholder="Front of card">
+    <label class="rpg-label">Front Image</label>
+    <input type="file" class="rpg-input" id="editFrontImg" accept="image/*" onchange="loadFrontImage(event)">
+    <label class="rpg-label">Back Text</label>
+    <textarea class="rpg-input" id="editBack" placeholder="Back of card" rows="3"></textarea>
+    <label class="rpg-label">Back Image</label>
+    <input type="file" class="rpg-input" id="editBackImg" accept="image/*" onchange="loadBackImage(event)">
+    <label class="rpg-label">🏷️ Tags (comma-separated)</label>
+    <input class="rpg-input" id="editTags" placeholder="e.g. chapter1, formula, exam" onchange="saveCardTags(this.value)">
+    <div class="edit-actions">
+      <button class="rpg-btn primary" onclick="saveCard()">💾 Save</button>
+      <button class="rpg-btn danger" onclick="deleteCard()">🗑 Delete</button>
+      <button class="rpg-btn" onclick="addNewCard()">➕ New Card</button>
+      <button class="rpg-btn" onclick="forgetCard()" title="Reset this card's progress to new">🔁 Forget</button>
+      <button class="rpg-btn danger" onclick="forgetAllCards()" title="Reset all cards in this deck to new">🔁 Forget All</button>
+      <button class="rpg-btn" onclick="shareDeck(currentDeckName)">🔗 Share Deck</button>
+    </div>
+
+    <!-- RAG Settings for this deck -->
+    <div class="rag-settings">
+      <div class="edit-panel-title">⚙ RAG Intervals (cards)</div>
+      <label class="rpg-label">🔴 Red (repeat after X cards)</label>
+      <input class="rpg-input small" type="number" id="ragRed" min="1">
+      <label class="rpg-label">🟡 Amber</label>
+      <input class="rpg-input small" type="number" id="ragAmber" min="1">
+      <label class="rpg-label">🟢 Green</label>
+      <input class="rpg-input small" type="number" id="ragGreen" min="1">
+      <button class="rpg-btn primary" onclick="saveRagSettings()">Save RAG</button>
+      <button class="rpg-btn" onclick="applyRagToAll()">Apply to All Decks</button>
+    </div>
+
+    <!-- Import -->
+    <div class="import-section">
+      <div class="edit-panel-title">📋 Paste Import</div>
+      <textarea class="rpg-input" id="importBox" placeholder="Front — Back (one per line)" rows="5"></textarea>
+      <button class="rpg-btn" onclick="previewImport()">Preview</button>
+      <div id="importPreview"></div>
+      <button class="rpg-btn primary" id="importConfirmBtn" style="display:none" onclick="confirmImport()">Import to Deck</button>
+    </div>
+  </div>
+
+  <!-- Session Summary Modal -->
+  <div class="modal-overlay" id="sessionModal" style="display:none" onclick="hideSessionSummary()">
+    <div class="rpg-modal" onclick="event.stopPropagation()">
+      <div class="modal-title">📊 Session Summary</div>
+      <div class="session-grid">
+        <div class="session-row"><span>🔴 Red</span><span id="sessionRedCount">0</span></div>
+        <div class="session-row"><span>🟡 Amber</span><span id="sessionAmberCount">0</span></div>
+        <div class="session-row"><span>🟢 Green</span><span id="sessionGreenCount">0</span></div>
+        <div class="session-row"><span>📚 Total</span><span id="sessionTotalCount">0</span></div>
+        <div class="session-row"><span>⏱ Time</span><span id="sessionTime">00:00</span></div>
+        <div class="session-row"><span>⚡ XP Earned</span><span id="sessionXP">0</span></div>
+      </div>
+      <div class="modal-actions">
+        <button class="rpg-btn primary" onclick="hideSessionSummary()">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Deck Modal -->
+  <div class="modal-overlay" id="resetModal" style="display:none" onclick="hideResetModal()">
+    <div class="rpg-modal" onclick="event.stopPropagation()">
+      <div class="modal-title">🔄 Reset Deck</div>
+      <p class="rpg-hint">Choose what to reset:</p>
+      <div class="reset-options">
+        <button class="rpg-btn danger" onclick="executeReset('all')">🔄 Full Reset<small>Forget all progress, start fresh</small></button>
+        <button class="rpg-btn" onclick="executeReset('unmastered')">🔴 Reset Unmastered<small>Reschedule red cards only</small></button>
+        <button class="rpg-btn" onclick="executeReset('schedule')">📅 Reset Schedule<small>Reset due dates, keep mastery stars</small></button>
+      </div>
+      <div class="modal-actions">
+        <button class="rpg-btn" onclick="hideResetModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Card Generator Modal -->
+  <div class="modal-overlay" id="aiCardGenModal" style="display:none" onclick="hideAICardGen()">
+    <div class="rpg-modal ai-cardgen-modal" onclick="event.stopPropagation()" style="max-width:560px">
+      <div class="modal-title">✨ Generate Flashcards with AI</div>
+      <p class="rpg-hint" style="margin-bottom:12px">Paste notes, a paragraph, or bullet points. AI will create front/back flashcard pairs.</p>
+      <textarea class="rpg-input" id="aiCardGenInput" rows="7"
+        placeholder="Paste lecture notes, textbook extract, or bullet points here…"
+        style="resize:vertical;font-family:'Crimson Text',serif"></textarea>
+      <div style="display:flex;gap:8px;align-items:center;margin:12px 0 0">
+        <label class="rpg-label" style="margin:0">Cards to generate:</label>
+        <input class="rpg-input small" type="number" id="aiCardCount" value="8" min="2" max="20" style="width:70px;margin:0">
+      </div>
+      <div id="aiCardGenStatus" style="margin-top:10px;min-height:24px;font-family:'Crimson Text',serif;font-size:0.95rem;color:var(--gold)"></div>
+      <div id="aiCardGenPreview" style="margin-top:8px;max-height:220px;overflow-y:auto"></div>
+      <div class="modal-actions" style="margin-top:14px">
+        <button class="rpg-btn primary" onclick="runAICardGen()">✨ Generate</button>
+        <button class="rpg-btn primary" id="aiCardImportBtn" style="display:none" onclick="importAICards()">⬇ Add to Deck</button>
+        <button class="rpg-btn" onclick="hideAICardGen()">✖ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievement Toast -->
+  <div class="achievement-toast" id="achievementToast" style="display:none">
+    <div class="toast-icon" id="toastIcon"></div>
+    <div class="toast-text">
+      <div class="toast-title" id="toastTitle"></div>
+      <div class="toast-desc" id="toastDesc"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    initApp();
+    loadDeckFromURL();
+    startStudyMode();
+    spawnParticles();
+    drawFlame();
+  </script>
+</body>
+</html>

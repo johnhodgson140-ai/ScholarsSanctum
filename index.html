@@ -1,0 +1,131 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholar's Sanctum</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="theme-color" content="#c9a84c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sanctum">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+</head>
+<body class="map-page">
+
+  <!-- Atmospheric background layers -->
+  <div class="bg-layer fog-layer"></div>
+  <div class="bg-layer particle-layer" id="particles"></div>
+  <div class="bg-layer vignette-layer"></div>
+
+  <!-- Header -->
+  <header class="rpg-header">
+    <div class="header-ornament left">⚜</div>
+    <div class="header-center">
+      <h1 class="site-title">Scholar's Sanctum</h1>
+      <p class="site-subtitle">Choose Your Realm of Knowledge</p>
+    </div>
+    <div class="header-ornament right">⚜</div>
+    <nav class="top-nav">
+      <a href="stats.html" class="nav-link">⚔ Character</a>
+      <a href="duel.html" class="nav-link">🤺 Duel</a>
+      <a href="settings.html" class="nav-link">⚙ Tome</a>
+    <a href="practice.html" class="nav-link">✍️ Practice</a>
+          <a href="calendar.html" class="nav-link">📅 Chronicle</a>
+    </nav>
+  </header>
+
+  <!-- Daily Quest Panel -->
+  <div class="quest-panel" id="questPanel">
+    <div class="quest-header">📜 Daily Quests</div>
+    <div id="questList" class="quest-list"></div>
+  </div>
+
+  <!-- Daily Goal Bar -->
+  <div class="daily-goal-bar">
+    <span class="goal-label">Daily Goal:</span>
+    <div class="goal-track">
+      <div class="goal-fill" id="goalFill"></div>
+    </div>
+    <span class="goal-text" id="goalText">0 / 20 cards</span>
+  </div>
+
+  <!-- Upcoming calendar events widget -->
+  <div class="calendar-widget" id="calendarWidget" style="display:none"></div>
+
+  <!-- World Map -->
+  <main class="world-map" id="worldMap">
+    <div class="map-grid" id="portalGrid">
+      <!-- Portals render here -->
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-map" id="emptyMap" style="display:none">
+      <p class="empty-text">✨ No realms exist yet. Open your first portal below.</p>
+    </div>
+
+
+  </main>
+
+  <!-- Create Portal Button -->
+  <div class="create-portal-area">
+    <button class="create-portal-btn" onclick="showCreateFolder()">🌀 Open New Portal</button>
+    <button class="create-portal-btn" id="pasteRealmBtn" onclick="pasteRealmHere()" style="display:none">📥 Paste Realm</button>
+  </div>
+
+  <!-- Create Folder Modal -->
+  <div class="modal-overlay" id="createModal" style="display:none">
+    <div class="rpg-modal">
+      <div class="modal-title">⚡ Summon a New Realm</div>
+      <input class="rpg-input" id="newFolderName" placeholder="Name this realm..." maxlength="30">
+      <div class="modal-subtitle">Parent Realm (optional):</div>
+      <select class="rpg-input" id="parentFolderSelect">
+        <option value="">— World Map (top level) —</option>
+      </select>
+      <div class="modal-actions">
+        <button class="rpg-btn primary" onclick="createFolder()">✨ Summon</button>
+        <button class="rpg-btn" onclick="hideCreateFolder()">✖ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Portal (Realm) Menu Modal -->
+  <div class="modal-overlay" id="portalMenuModal" style="display:none" onclick="hidePortalMenu()">
+    <div class="rpg-modal" onclick="event.stopPropagation()">
+      <div class="modal-title">🌀 <span id="portalMenuName"></span></div>
+      <div class="modal-actions" style="flex-direction:column;gap:8px">
+        <button class="rpg-btn" onclick="copyFolder(activePortalMenu)">📋 Copy Realm</button>
+        <button class="rpg-btn" id="portalMenuPaste" onclick="executePasteFolder()" style="display:none">📥 Paste Realm Copy Here</button>
+        <button class="rpg-btn" onclick="hidePortalMenu()">✖ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievement Toast -->
+  <div class="achievement-toast" id="achievementToast" style="display:none">
+    <div class="toast-icon" id="toastIcon"></div>
+    <div class="toast-text">
+      <div class="toast-title" id="toastTitle"></div>
+      <div class="toast-desc" id="toastDesc"></div>
+    </div>
+  </div>
+
+  <!-- Arcane corner decorations -->
+  <div class="arcane-corner tl">✦</div>
+  <div class="arcane-corner tr">✦</div>
+  <div class="arcane-corner bl">◊</div>
+  <div class="arcane-corner br">◊</div>
+
+  <script src="app.js"></script>
+  <script>
+    initApp();
+    renderWorldMap();
+    renderDailyQuests();
+    renderDailyGoal();
+    spawnParticles();
+  </script>
+</body>
+</html>
