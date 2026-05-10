@@ -6176,12 +6176,9 @@ function _startMCTQuiz() {
   if (picker) picker.style.display = 'none';
   if (write)  write.style.display  = 'none';
   if (view) {
-    const isMobile = document.body.classList.contains('mobile-ui');
     view.style.display = 'flex';
     view.style.flexDirection = 'column';
-    view.style.height = isMobile ? 'auto' : '100vh';
-    view.style.minHeight = isMobile ? '0' : '';
-    view.style.overflowY = isMobile ? 'auto' : '';
+    view.style.height = '100vh';
   }
   const title = document.getElementById('mctQuizTitle');
   if (title) title.textContent = 'MCT for ' + _mctTopic;

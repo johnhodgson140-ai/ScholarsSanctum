@@ -6446,12 +6446,21 @@ del.ai-diff-del {
   .mct-a4-page { padding: 18px 16px 20px; }
 }
 
-/* Mobile MCT: single-column, natural scroll */
-.mobile-ui #mctQuizView { height: auto !important; overflow-y: auto; }
-.mobile-ui #mctQuizView .write-layout { flex-direction: column !important; }
+/* Mobile MCT: fixed full-screen overlay so parent overflow:hidden doesn't clip it */
+.mobile-ui #mctQuizView {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 200 !important;
+  height: 100% !important;
+  overflow-y: auto !important;
+  background: var(--bg-dark) !important;
+  flex-direction: column !important;
+}
+.mobile-ui #mctQuizView .write-layout { flex-direction: column !important; overflow: visible !important; }
 .mobile-ui #mctQuizView .write-right-panel { display: none !important; }
-.mobile-ui #mctQuizView .word-doc-wrap { padding: 10px 8px 0; overflow: visible; }
-.mobile-ui #mctQuizView .mct-a4-page { flex: none; overflow-y: visible; margin-bottom: 60px; }
+.mobile-ui #mctQuizView .write-center { overflow: visible !important; }
+.mobile-ui #mctQuizView .word-doc-wrap { padding: 10px 8px 0; overflow: visible; flex: none; }
+.mobile-ui #mctQuizView .mct-a4-page { flex: none; overflow-y: visible; margin-bottom: 80px; }
 .mobile-ui #mctQuizView .mct-options { grid-template-columns: 1fr; }
-.mobile-ui #mctQuizView .mct-option-btn { font-size: 1rem; padding: 14px 14px; }
+.mobile-ui #mctQuizView .mct-option-btn { font-size: 1rem; padding: 14px; }
 .mobile-ui .duel-sub-meta { font-size: 0.7rem !important; }
