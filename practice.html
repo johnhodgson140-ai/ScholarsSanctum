@@ -186,7 +186,10 @@
     <div class="table-panel" id="tablePanel" style="display:none">
       <div class="table-panel-header" onmousedown="startDragPanel(event)">
         <span>📊 Table Editor</span>
-        <div style="display:flex;gap:6px">
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="rpg-btn small" onclick="insertTableIntoAnswer('md')" style="padding:3px 8px;font-size:0.75rem" title="Insert table">⬇ Table</button>
+          <button class="rpg-btn small" onclick="insertTableIntoAnswer('text')" style="padding:3px 8px;font-size:0.75rem" title="Insert as text">📝 Text</button>
+          <button class="rpg-btn small" onclick="clearTablePanel()" style="padding:3px 8px;font-size:0.75rem" title="Clear">✕ Clear</button>
           <button onclick="maximiseTablePanel()" title="Maximise">⛶</button>
           <button onclick="toggleTablePanel()">✕</button>
         </div>
