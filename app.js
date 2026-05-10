@@ -75,6 +75,13 @@ function initApp() {
     try { checkPendingChallenges(); } catch(_) {}
     try { checkDailyReminder(); } catch(_) {}
     if ('serviceWorker' in navigator) {
+      const hadController = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (hadController && !window._swReloading) {
+          window._swReloading = true;
+          window.location.reload();
+        }
+      });
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
     setTimeout(() => { try { _initAIChat(); } catch(_) {} }, 300);
