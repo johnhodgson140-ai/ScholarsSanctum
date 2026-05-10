@@ -6015,6 +6015,43 @@ del.ai-diff-del {
 .mobile-ui .portal-canvas { width: 90px !important; height: 90px !important; }
 .mobile-ui .portal-name { font-size: 0.7rem; }
 
+/* Hide calendar widget on mobile — saves space for portals */
+.mobile-ui .calendar-widget { display: none !important; }
+
+/* Compact daily quest panel on mobile */
+.mobile-ui .quest-panel {
+  padding: 6px 10px !important;
+  gap: 4px !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+}
+.mobile-ui .quest-header {
+  font-size: 0.65rem !important;
+  margin: 0 6px 0 0 !important;
+  white-space: nowrap;
+}
+.mobile-ui .quest-list {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+}
+.mobile-ui .quest-item {
+  font-size: 0.65rem !important;
+  padding: 2px 6px !important;
+  white-space: nowrap;
+}
+
+/* Compact daily goal bar on mobile */
+.mobile-ui .daily-goal-bar {
+  padding: 4px 10px !important;
+  font-size: 0.7rem !important;
+  gap: 6px !important;
+}
+.mobile-ui .goal-track { height: 6px !important; }
+.mobile-ui .goal-label { font-size: 0.65rem !important; white-space: nowrap; }
+
 /* Practice page: hide right panel */
 .mobile-ui .write-right-panel { display: none !important; }
 .mobile-ui .write-layout { grid-template-columns: 1fr !important; }
@@ -6059,9 +6096,10 @@ del.ai-diff-del {
   overflow-x: hidden;
 }
 .mobile-ui .map-grid {
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
-  gap: 14px !important;
-  padding: 4px 12px 20px !important;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+  gap: 20px 14px !important;
+  padding: 8px 12px 80px !important;
+  align-items: start !important;
 }
 
 /* Make header shorter on mobile */
