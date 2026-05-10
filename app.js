@@ -5968,6 +5968,7 @@ let _mctLastContent = '';
 let _mctLastCount = 10;
 let _mctGeneration = 0;
 let _mctFlameRAF = null;
+let _mctSeenQuestions = []; // tracks all question stems ever shown
 
 function showMCTBuilder() {
   const modal = document.getElementById('mctBuilderModal');
@@ -6015,10 +6016,11 @@ async function runMCTGenerate() {
   }
 
   const topic = (document.getElementById('mctTopicInput')?.value || '').trim() || 'study material';
-  _mctLastContent = content;
-  _mctLastCount   = count;
-  _mctTopic       = topic;
-  _mctGeneration  = 0;
+  _mctLastContent  = content;
+  _mctLastCount    = count;
+  _mctTopic        = topic;
+  _mctGeneration   = 0;
+  _mctSeenQuestions = []; // fresh topic = clear history
 
   status.innerHTML = '<span style="color:var(--gold)">⏳ Generating ' + count + ' questions…</span>';
   if (btn) btn.disabled = true;
@@ -6049,17 +6051,21 @@ function _runMCTCall(onDone, onError) {
   const topic = _mctTopic;
   const gen   = _mctGeneration;
 
+  const seenBlock = _mctSeenQuestions.length > 0
+    ? `\n\nPREVIOUSLY USED QUESTIONS (do not repeat these — not even the same concept with different wording):\n${_mctSeenQuestions.map((q,i) => `${i+1}. ${q}`).join('\n')}\n\nFor calculation/formula questions where the same formula must be tested, you MUST change all numerical values so the working and answer are completely different.`
+    : '';
+
   const varietyNote = gen > 0
-    ? `This is attempt ${gen + 1}. Generate fresh questions — vary the aspects of the subject tested and rephrase where possible. You may reuse similar wording only if the concept genuinely requires it for accuracy. Prefer testing different facts, applications, or angles than before.`
+    ? `This is attempt ${gen + 1}. Generate entirely fresh questions covering different aspects, angles, and applications not tested before.`
     : 'Generate a diverse spread of questions covering different aspects of the content.';
 
   const sys = `You are an exam question generator. Generate exactly ${count} multiple-choice questions based on the content provided.
 Return ONLY a valid JSON array — no preamble, no markdown, no code fences. Format:
 [{"q":"Question text?","opts":["A) …","B) …","C) …","D) …"],"correct":0,"explanation":"Brief reason (1-2 sentences)."}]
 "correct" is the 0-based index of the correct answer (0=A, 1=B, 2=C, 3=D). Make distractors plausible. Questions should be exam-standard.
-${varietyNote}`;
+${varietyNote}${seenBlock}`;
 
-  const usr = `Topic: ${topic}\n\nContent:\n${_mctLastContent}\n\nGenerate ${count} MCT questions as a JSON array.`;
+  const usr = `Topic: ${topic}\n\nContent:\n${_mctLastContent}\n\nGenerate ${count} NEW questions not listed above as a JSON array.`;
 
   let raw = '';
   _callClaudeAPI(sys, usr,
@@ -6069,6 +6075,8 @@ ${varietyNote}`;
         const s = raw.indexOf('['), e = raw.lastIndexOf(']') + 1;
         if (s < 0 || e <= s) throw new Error('no array');
         _mctQuestions = JSON.parse(raw.slice(s, e));
+        // Remember these questions so they're never repeated
+        _mctQuestions.forEach(q => { if (q.q) _mctSeenQuestions.push(q.q); });
         onDone();
       } catch(_) {
         onError('Could not parse AI response — try again.');
