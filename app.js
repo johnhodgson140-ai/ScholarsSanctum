@@ -2389,7 +2389,14 @@ function _authErrMsg(data) {
   return m || 'Something went wrong. Try again.';
 }
 
+const _ALLOWED_EMAILS = ['johnhodgson140@gmail.com'];
+
 async function registerUser(displayName, email, password) {
+  // Private app — only whitelisted emails can register
+  if (!_ALLOWED_EMAILS.includes(email.toLowerCase().trim())) {
+    throw new Error('This app is private. Registration is not open.');
+  }
+
   // Validate username locally first
   const usernameErr = _validateUsername(displayName);
   if (usernameErr) throw new Error(usernameErr);
