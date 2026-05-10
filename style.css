@@ -95,6 +95,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
+  overscroll-behavior: none; /* prevent iOS bounce on all pages */
 }
 
 /* ============================================================
@@ -5984,18 +5985,32 @@ del.ai-diff-del {
 .mobile-ui .rpg-btn.nav-btn { font-size: 0.78rem; padding: 8px 12px; min-height: 40px; }
 
 /* No horizontal scroll on study pages */
+/* Lock study + duel pages to viewport — no body scroll */
 .mobile-ui .study-page, .mobile-ui .duel-page {
-  overflow-x: hidden !important;
+  overflow: hidden !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  position: fixed !important;
+  width: 100% !important;
+  overscroll-behavior: none !important;
 }
 .mobile-ui .study-page .study-main,
 .mobile-ui .duel-page .study-arena {
-  overflow-x: hidden !important;
+  overflow: hidden !important;
 }
 
-/* Flashcard page: lock scrolling to vertical only */
-.mobile-ui.study-page, .mobile-ui.duel-page {
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
+/* Map + folder pages: no body scroll, portals scroll internally */
+.mobile-ui .map-page, .mobile-ui .folder-page {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+/* Only these inner containers are allowed to scroll */
+.mobile-ui .world-map,
+.mobile-ui .folder-content,
+.mobile-ui .page-content {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* XP bar fits mobile */
