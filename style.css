@@ -6446,7 +6446,6 @@ body.mobile-ui.practice-page {
 
 /* ── Mobile MCT: bypass flex collapse entirely, simple block layout ── */
 .mobile-ui #mctQuizView {
-  display: block !important;
   height: auto !important;
   min-height: 100vh !important;
   width: 100% !important;
@@ -6454,16 +6453,16 @@ body.mobile-ui.practice-page {
   overflow-x: hidden !important;
   background: var(--bg-dark) !important;
 }
-/* Flatten every flex wrapper — let content stack as plain blocks */
+/* Flatten every flex wrapper — let content stack */
 .mobile-ui #mctQuizView .write-layout,
 .mobile-ui #mctQuizView .write-center,
 .mobile-ui #mctQuizView .word-doc-wrap {
-  display: block !important;
   height: auto !important;
   min-height: 0 !important;
   overflow: visible !important;
   flex: none !important;
   padding: 0 !important;
+  flex-direction: column !important;
 }
 .mobile-ui #mctQuizView .write-right-panel { display: none !important; }
 .mobile-ui #mctQuizView .mct-a4-page {
@@ -6483,7 +6482,6 @@ body.mobile-ui.practice-page {
 /* ── Mobile AI Duel + Card Duel: block layout so nothing collapses ── */
 .mobile-ui #aiDuelView,
 .mobile-ui #duelStudyView {
-  display: block !important;
   height: auto !important;
   min-height: 100vh !important;
   width: 100% !important;
@@ -6492,7 +6490,6 @@ body.mobile-ui.practice-page {
 }
 .mobile-ui #aiDuelView .study-arena,
 .mobile-ui #duelStudyView .study-arena {
-  display: block !important;
   height: auto !important;
   overflow: visible !important;
   padding: 12px !important;
@@ -6505,15 +6502,14 @@ body.mobile-ui.practice-page {
 
 /* ── Mobile Practice Write: same treatment ── */
 .mobile-ui #scrollWriteView {
-  display: block !important;
   height: auto !important;
   min-height: 100vh !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
 }
-.mobile-ui #scrollWriteView .write-layout { display: block !important; height: auto !important; overflow: visible !important; }
-.mobile-ui #scrollWriteView .write-center { display: block !important; height: auto !important; overflow: visible !important; }
-.mobile-ui #scrollWriteView .word-doc-wrap { display: block !important; height: auto !important; overflow: visible !important; padding: 8px !important; }
+.mobile-ui #scrollWriteView .write-layout { height: auto !important; overflow: visible !important; flex-direction: column !important; }
+.mobile-ui #scrollWriteView .write-center { height: auto !important; overflow: visible !important; }
+.mobile-ui #scrollWriteView .word-doc-wrap { height: auto !important; overflow: visible !important; padding: 8px !important; }
 .mobile-ui #scrollWriteView .word-doc-page { flex: none !important; height: auto !important; min-height: 300px !important; }
 .mobile-ui #scrollWriteView .write-right-panel { display: none !important; }
 .mobile-ui .duel-sub-meta { font-size: 0.7rem !important; }
