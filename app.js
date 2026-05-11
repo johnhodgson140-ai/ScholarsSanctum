@@ -4369,6 +4369,118 @@ let writeElapsed     = 0;
 let writeTimerOn     = false;
 let tablePanelOpen   = false;
 
+// ============================================================
+// CONDENSE NOTES
+// ============================================================
+function showCondenseModal() {
+  document.getElementById('condenseStatus').textContent = '';
+  document.getElementById('condenseInput').value = '';
+  document.getElementById('condenseFileInput').value = '';
+  document.getElementById('condenseBtn').disabled = false;
+  setCondenseSource('text');
+  document.getElementById('condenseModal').style.display = 'flex';
+}
+function hideCondenseModal() {
+  document.getElementById('condenseModal').style.display = 'none';
+}
+function setCondenseSource(src) {
+  document.querySelectorAll('#condenseModal .mct-src-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.src === src));
+  document.getElementById('condenseTextSrc').style.display = src === 'text' ? '' : 'none';
+  document.getElementById('condenseFileSrc').style.display = src === 'file' ? '' : 'none';
+}
+
+function runCondense() {
+  const src     = document.querySelector('#condenseModal .mct-src-tab.active')?.dataset?.src || 'text';
+  const status  = document.getElementById('condenseStatus');
+  const btn     = document.getElementById('condenseBtn');
+  const rawName = (document.getElementById('condenseBookName')?.value || '').trim();
+  const bookName = rawName || ('Notes ' + new Date().toLocaleDateString('en-GB'));
+
+  const proceed = content => {
+    status.innerHTML = '<span style="color:var(--gold)">⏳ Condensing…</span>';
+    btn.disabled = true;
+    const sys = 'You are a revision notes expert. Condense content into clear, scannable bullet points.';
+    const usr = `Condense the following into structured revision notes. Format:
+## [Topic Header]
+• Key point (under 15 words)
+• Another key point
+→ Definition or formula: [value]
+
+Rules: group related ideas, include all formulas/dates/figures, max 35 bullets, UK English.
+
+Content:\n${content}`;
+    let raw = '';
+    _callClaudeAPI(sys, usr,
+      chunk => { raw += chunk; },
+      () => _saveCondensedNotes(bookName, raw, status, btn),
+      err  => { status.innerHTML = `<span style="color:#ff9090">❌ ${err}</span>`; btn.disabled = false; },
+      2000
+    );
+  };
+
+  const proceedImage = (b64, mime) => {
+    status.innerHTML = '<span style="color:var(--gold)">⏳ Reading image & condensing…</span>';
+    btn.disabled = true;
+    const sys = 'You are a revision notes expert. Condense content into clear, scannable bullet points.';
+    const messages = [{ role: 'user', content: [
+      { type: 'image', source: { type: 'base64', media_type: mime, data: b64 } },
+      { type: 'text', text: `Condense the content in this image into structured revision notes. Format:
+## [Topic Header]
+• Key point (under 15 words)
+→ Definition or formula: [value]
+Group related ideas, include all formulas/dates/figures, max 35 bullets, UK English.` }
+    ]}];
+    let raw = '';
+    _callClaudeAPIMessages(sys, messages, 2000,
+      chunk => { raw += chunk; },
+      () => _saveCondensedNotes(bookName, raw, status, btn),
+      err  => { status.innerHTML = `<span style="color:#ff9090">❌ ${err}</span>`; btn.disabled = false; }
+    );
+  };
+
+  if (src === 'file') {
+    const file = document.getElementById('condenseFileInput')?.files?.[0];
+    if (!file) { status.textContent = '⚠ Choose a file first.'; return; }
+    _readAIFile(file,
+      result => result.type === 'image' ? proceedImage(result.b64, result.mime) : proceed(result.content),
+      err => { status.textContent = '⚠ ' + err; }
+    );
+  } else {
+    const text = (document.getElementById('condenseInput')?.value || '').trim();
+    if (!text) { status.textContent = '⚠ Paste some content first.'; return; }
+    proceed(text);
+  }
+}
+
+function _saveCondensedNotes(bookName, content, status, btn) {
+  if (!db.practiceBooks) db.practiceBooks = {};
+  // Create book if it doesn't exist
+  if (!db.practiceBooks[bookName]) {
+    db.practiceBooks[bookName] = {
+      colour: '#2d6a4f', created: Date.now(), sessions: []
+    };
+  }
+  const book = db.practiceBooks[bookName];
+  if (!book.sessions) book.sessions = [];
+  book.sessions.unshift({
+    id: Date.now(),
+    question: '📝 Condensed Notes',
+    answer: content,
+    timestamp: Date.now(),
+    wordCount: content.split(/\s+/).filter(Boolean).length,
+    wpm: 0
+  });
+  saveDB();
+  status.innerHTML = `<span style="color:#7dde8a">✅ Saved to "${bookName}"!</span>`;
+  btn.disabled = false;
+  setTimeout(() => {
+    hideCondenseModal();
+    // Open the book directly
+    openScroll(bookName);
+  }, 800);
+}
+
 function loadPracticePage() {
   if (!db.practiceBooks) db.practiceBooks = {};
   if (!db.stats.practiceStreak)      db.stats.practiceStreak = 0;

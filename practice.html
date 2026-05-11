@@ -52,7 +52,8 @@
 
     <div class="create-portal-area">
       <button class="create-portal-btn gold" onclick="showNewScrollModal()">📖 New Practice Book</button>
-      <button class="create-portal-btn" onclick="showMCTBuilder()" style="background:rgba(80,40,160,0.7);border-color:rgba(140,100,255,0.5)">🔠 MCT Quiz Builder</button>
+      <button class="create-portal-btn" onclick="showMCTBuilder()" style="background:rgba(80,40,160,0.7);border-color:rgba(140,100,255,0.5)">🔠 MCT Quiz</button>
+      <button class="create-portal-btn" onclick="showCondenseModal()" style="background:rgba(20,100,60,0.8);border-color:rgba(60,200,120,0.5);color:#7fffc4">⚡ Condense</button>
     </div>
 
     <!-- Rename Book Modal -->
@@ -434,6 +435,43 @@
       <div class="modal-actions" style="margin-top:14px">
         <button class="rpg-btn primary" id="mctGenerateBtn" onclick="runMCTGenerate()">🤖 Generate Quiz</button>
         <button class="rpg-btn" onclick="hideMCTBuilder()">✖ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Condense Notes Modal -->
+  <div class="modal-overlay" id="condenseModal" style="display:none" onclick="if(event.target===this)hideCondenseModal()">
+    <div class="rpg-modal" onclick="event.stopPropagation()" style="max-width:560px">
+      <div class="modal-title">⚡ Condense Notes</div>
+      <p class="rpg-hint" style="margin-bottom:14px">AI condenses your content into clear bullet points saved as a notes book for quick revision.</p>
+
+      <div class="mct-source-tabs">
+        <button class="mct-src-tab active" data-src="text" onclick="setCondenseSource('text')">📝 Paste Text</button>
+        <button class="mct-src-tab" data-src="file" onclick="setCondenseSource('file')">📎 File / Photo</button>
+      </div>
+
+      <div id="condenseTextSrc">
+        <textarea class="rpg-input" id="condenseInput" rows="6"
+          placeholder="Paste notes, textbook extract, lecture slides…"
+          style="resize:vertical;font-family:'Crimson Text',serif"></textarea>
+      </div>
+      <div id="condenseFileSrc" style="display:none">
+        <p class="rpg-hint" style="margin-bottom:8px">Upload a text file or photo of your notes/textbook.</p>
+        <input type="file" class="rpg-input" id="condenseFileInput"
+          accept=".txt,.md,.csv,.jpg,.jpeg,.png,.webp,.gif"
+          style="padding:10px;cursor:pointer">
+      </div>
+
+      <div style="margin-top:12px">
+        <label class="rpg-label">Notes book name</label>
+        <input class="rpg-input" id="condenseBookName" placeholder="e.g. Accounting Chapter 3 Notes" style="margin:0">
+      </div>
+
+      <div id="condenseStatus" style="min-height:22px;margin-top:10px;font-family:'Crimson Text',serif;font-size:0.95rem;color:var(--gold)"></div>
+
+      <div class="modal-actions" style="margin-top:14px">
+        <button class="rpg-btn primary" id="condenseBtn" onclick="runCondense()">⚡ Condense</button>
+        <button class="rpg-btn" onclick="hideCondenseModal()">✖ Cancel</button>
       </div>
     </div>
   </div>
